@@ -5,8 +5,11 @@ const {
   ActionRowBuilder,
   StringSelectMenuBuilder,
   ButtonBuilder,
-  ButtonStyle
+  ButtonStyle,
+  AttachmentBuilder
 } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
 const db = require('../database/db');
 
 module.exports = {
@@ -125,17 +128,24 @@ module.exports = {
 
     const components = [menuRow, actionRow];
 
+    // Check for promotional video in assets or dashboard/public
+    const localVideo = path.join(__dirname, '..', 'assets', 'store_video.mp4');
+    const pubVideo = path.join(__dirname, '..', 'dashboard', 'public', 'store_video.mp4');
+    const videoFile = fs.existsSync(localVideo) ? localVideo : (fs.existsSync(pubVideo) ? pubVideo : null);
+    const files = videoFile ? [new AttachmentBuilder(videoFile, { name: 'store_preview.mp4' })] : [];
+
     if (subcommand === 'send') {
       const channel = interaction.options.getChannel('channel') || interaction.channel;
-      await channel.send({ embeds: [embed], components });
+      await channel.send({ embeds: [embed], components, files });
       await interaction.reply({
-        content: `✅ Store catalog successfully sent to ${channel}!`,
+        content: `✅ Store catalog with video preview successfully sent to ${channel}!`,
         ephemeral: true
       });
     } else {
       await interaction.reply({
         embeds: [embed],
         components,
+        files,
         ephemeral: true
       });
     }
