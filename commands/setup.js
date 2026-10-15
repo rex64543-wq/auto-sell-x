@@ -132,6 +132,18 @@ module.exports = {
           opt.setName('customer_role').setDescription('Role granted to buyers after payment approval').setRequired(false)
         )
     )
+    // Admin Password Reset
+    .addSubcommand(sub =>
+      sub
+        .setName('admin_password')
+        .setDescription('Change or reset the web dashboard admin username and password (Owner only)')
+        .addStringOption(opt =>
+          opt.setName('password').setDescription('New master password (minimum 4 characters)').setRequired(true)
+        )
+        .addStringOption(opt =>
+          opt.setName('username').setDescription('New admin username (default: admin)').setRequired(false)
+        )
+    )
     // View
     .addSubcommand(sub => sub.setName('view').setDescription('View all current bot settings and configuration')),
 
@@ -265,6 +277,30 @@ module.exports = {
         content: `✅ **Roles Updated Successfully!**\n${messages.join('\n')}`,
         ephemeral: true
       });
+    } else if (subcommand === 'admin_password') {
+      const security = require('../dashboard/auth/security');
+      const newPassword = interaction.options.getString('password');
+      const newUsername = interaction.options.getString('username') || 'admin';
+
+      try {
+        security.updateAdminCredentials(newUsername, newPassword);
+        const embed = new EmbedBuilder()
+          .setColor(0x2ecc71)
+          .setTitle('🔐 Website Admin Password Changed')
+          .setDescription(
+            `The master credentials for the Web Control Center have been updated successfully!\n\n` +
+            `• **Admin Username:** \`${newUsername}\`\n` +
+            `• **New Password:** \`••••••••\` *(Updated securely)*\n` +
+            `• **Web Dashboard:** [https://white-x-store.onrender.com](https://white-x-store.onrender.com)\n\n` +
+            `⚠️ *All existing browser sessions have been invalidated. Please log into the dashboard with your new password.*`
+          )
+          .setFooter({ text: 'Auto Sell Bot • Security Guardian' })
+          .setTimestamp();
+
+        await interaction.reply({ embeds: [embed], ephemeral: true });
+      } catch (err) {
+        await interaction.reply({ content: `❌ Error: ${err.message}`, ephemeral: true });
+      }
     } else if (subcommand === 'view') {
       const methods = settings.paymentMethods || {};
       const shopPage = settings.shopPage || {};

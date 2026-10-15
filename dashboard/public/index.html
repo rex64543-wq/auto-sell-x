@@ -132,6 +132,10 @@
           <span class="nav-icon">🚀</span>
           <span class="nav-label">Discord Deploy</span>
         </a>
+        <a href="#security-portal" class="nav-item" id="navPasswordPortal" onclick="openPasswordPortalModal(event)">
+          <span class="nav-icon">🛡️</span>
+          <span class="nav-label">Password Portal</span>
+        </a>
       </nav>
 
       <div class="sidebar-footer">
@@ -162,6 +166,9 @@
           </button>
           <button class="btn btn-gradient btn-sm" id="btnQuickDeploy">
             <span class="btn-icon">🚀</span> Deploy Shop
+          </button>
+          <button class="btn btn-secondary btn-sm" id="btnOpenPasswordPortal" onclick="openPasswordPortalModal(event)" style="border: 1px solid rgba(0, 229, 255, 0.4); color: #00e5ff; font-weight: 600;">
+            <span class="btn-icon">🔑</span> Password Portal
           </button>
           <button class="btn btn-sm" id="btnAdminLogout" style="border: 1px solid rgba(244,63,94,0.4); color: #f43f5e; background: rgba(244,63,94,0.1); font-weight: 600;">
             <span class="btn-icon">🚪</span> Logout
@@ -1261,6 +1268,99 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" onclick="closeModal('currencyModal')">Cancel</button>
           <button type="submit" class="btn btn-primary" id="btnSaveCurrency">💾 Save Currency</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Admin Password Change System Portal -->
+  <div class="modal-backdrop" id="passwordPortalModal" style="display: none;">
+    <div class="modal-box glass-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 26px;">🛡️</span>
+          <div>
+            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #fff;">Admin Security & Password Portal</h3>
+            <small class="muted">Update master credentials and revoke browser sessions</small>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closePasswordPortalModal()">&times;</button>
+      </div>
+      <form id="portalPasswordForm">
+        <div class="modal-body">
+          <div id="portalAlertBox" class="alert-box" style="display: none; margin-bottom: 16px;"></div>
+
+          <div class="form-group">
+            <label for="portalCurrentPwd">Current Master Password <span style="color: var(--accent-rose);">*</span></label>
+            <div class="input-with-icon">
+              <span class="input-icon">🔑</span>
+              <input type="password" id="portalCurrentPwd" class="form-input" placeholder="Enter existing password to authorize" required>
+              <button type="button" class="btn-toggle-pwd" id="btnToggleCurrentPwd">👁️</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="portalNewUsername">Admin Username</label>
+            <div class="input-with-icon">
+              <span class="input-icon">👤</span>
+              <input type="text" id="portalNewUsername" class="form-input" placeholder="admin" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="portalNewPwd">New Master Password <span style="color: var(--accent-rose);">*</span></label>
+            <div class="input-with-icon">
+              <span class="input-icon">🔒</span>
+              <input type="password" id="portalNewPwd" class="form-input" placeholder="Minimum 4 characters" required>
+              <button type="button" class="btn-toggle-pwd" id="btnToggleNewPwd">👁️</button>
+            </div>
+            <!-- Live Password Strength Meter -->
+            <div class="pwd-meter-container" style="margin-top: 8px;">
+              <div class="pwd-meter-track" style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;">
+                <div id="pwdStrengthBar" style="height: 100%; width: 0%; background: #f43f5e; transition: all 0.3s ease;"></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                <small id="pwdStrengthText" class="muted" style="font-size: 11px;">Password strength: none</small>
+                <small class="muted" style="font-size: 11px;">Min 4 chars</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="portalConfirmPwd">Confirm New Password <span style="color: var(--accent-rose);">*</span></label>
+            <div class="input-with-icon">
+              <span class="input-icon">✅</span>
+              <input type="password" id="portalConfirmPwd" class="form-input" placeholder="Re-type new password" required>
+            </div>
+            <small id="pwdMatchIndicator" style="display: none; font-size: 11px; margin-top: 4px; font-weight: 600;"></small>
+          </div>
+
+          <!-- Dynamic Security Verification Challenge -->
+          <div class="form-group captcha-group" style="margin-top: 14px; padding: 12px;">
+            <div class="captcha-label-row">
+              <span>Security Verification Challenge <span style="color: var(--accent-rose);">*</span></span>
+              <button type="button" class="btn-reload-captcha" id="btnReloadPortalCaptcha">
+                <span class="reload-icon">🔄</span> Refresh Code
+              </button>
+            </div>
+            <div class="captcha-render-container" style="margin-bottom: 8px;">
+              <div id="portalCaptchaSvgContainer" class="captcha-svg-box">
+                <span class="captcha-loading">Loading challenge...</span>
+              </div>
+              <input type="hidden" id="portalCaptchaId">
+            </div>
+            <input type="text" id="portalCaptchaInput" class="form-input captcha-input-field" placeholder="ENTER 5 CODE" maxlength="5" required>
+          </div>
+
+          <div class="security-level-pill" style="display: block; text-align: center; margin-top: 12px; font-size: 11px;">
+            🔒 PBKDF2-SHA512 Cryptographic Hashing • Instantly revokes all other active browser sessions
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closePasswordPortalModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitPasswordPortal">
+            <span class="btn-icon">💾</span> Save & Update Password
+          </button>
         </div>
       </form>
     </div>

@@ -106,16 +106,34 @@ module.exports = function (client) {
   // Change Admin Credentials (Protected)
   router.post('/auth/change-credentials', security.requireAuth, (req, res) => {
     try {
-      const { currentPassword, newUsername, newPassword } = req.body;
+      const { currentPassword, newUsername, newPassword, confirmPassword, captchaId, captchaInput } = req.body;
+
+      if (!currentPassword) {
+        return res.status(400).json({ success: false, message: 'Current master password is required' });
+      }
+      if (!newPassword || newPassword.length < 4) {
+        return res.status(400).json({ success: false, message: 'New password must be at least 4 characters long' });
+      }
+      if (confirmPassword && newPassword !== confirmPassword) {
+        return res.status(400).json({ success: false, message: 'New password and confirm password do not match' });
+      }
+
+      if (captchaId && captchaInput) {
+        const capCheck = security.verifyCaptcha(captchaId, captchaInput);
+        if (!capCheck.valid) {
+          return res.status(400).json({ success: false, message: capCheck.error || 'Invalid or expired CAPTCHA code' });
+        }
+      }
+
       const verify = security.authenticateUser(req.adminUser, currentPassword);
       if (!verify.success) {
         return res.status(400).json({ success: false, message: 'Current password is incorrect' });
       }
 
-      security.updateAdminCredentials(newUsername || req.adminUser, newPassword);
+      const updated = security.updateAdminCredentials(newUsername || req.adminUser, newPassword);
       res.json({
         success: true,
-        message: 'Admin credentials updated successfully! Please re-login with your new credentials.'
+        message: `Admin credentials updated successfully for user "${updated.username}"! All active sessions have been revoked for security. Please log in with your new credentials.`
       });
     } catch (err) {
       res.status(400).json({ success: false, message: err.message });

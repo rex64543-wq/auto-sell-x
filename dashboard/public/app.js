@@ -275,6 +275,238 @@ function setupAuthHandlers() {
       }
     });
   }
+
+  // Password Portal Modal Listeners
+  setupPasswordPortalListeners();
+}
+
+function setupPasswordPortalListeners() {
+  // Toggle Visibility for Current Password
+  document.getElementById('btnToggleCurrentPwd')?.addEventListener('click', () => {
+    const input = document.getElementById('portalCurrentPwd');
+    if (!input) return;
+    const isPwd = input.type === 'password';
+    input.type = isPwd ? 'text' : 'password';
+    document.getElementById('btnToggleCurrentPwd').textContent = isPwd ? '🔒' : '👁️';
+  });
+
+  // Toggle Visibility for New Password
+  document.getElementById('btnToggleNewPwd')?.addEventListener('click', () => {
+    const input = document.getElementById('portalNewPwd');
+    if (!input) return;
+    const isPwd = input.type === 'password';
+    input.type = isPwd ? 'text' : 'password';
+    document.getElementById('btnToggleNewPwd').textContent = isPwd ? '🔒' : '👁️';
+  });
+
+  // Reload Portal Captcha
+  document.getElementById('btnReloadPortalCaptcha')?.addEventListener('click', () => {
+    loadPortalCaptcha();
+  });
+
+  // Live Password Strength Meter
+  document.getElementById('portalNewPwd')?.addEventListener('input', e => {
+    updatePasswordStrengthMeter(e.target.value);
+    validatePasswordMatch();
+  });
+
+  // Live Match Check
+  document.getElementById('portalConfirmPwd')?.addEventListener('input', () => {
+    validatePasswordMatch();
+  });
+
+  // Form Submit for Password Portal Modal
+  const portalForm = document.getElementById('portalPasswordForm');
+  if (portalForm) {
+    portalForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const alertBox = document.getElementById('portalAlertBox');
+      const submitBtn = document.getElementById('btnSubmitPasswordPortal');
+
+      const currentPassword = document.getElementById('portalCurrentPwd').value;
+      const newUsername = document.getElementById('portalNewUsername').value.trim();
+      const newPassword = document.getElementById('portalNewPwd').value;
+      const confirmPassword = document.getElementById('portalConfirmPwd').value;
+      const captchaId = document.getElementById('portalCaptchaId').value;
+      const captchaInput = document.getElementById('portalCaptchaInput').value.trim();
+
+      if (newPassword !== confirmPassword) {
+        showPortalAlert('⚠️ New password and confirm password do not match!', 'danger');
+        return;
+      }
+
+      if (newPassword.length < 4) {
+        showPortalAlert('⚠️ New password must be at least 4 characters long.', 'danger');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="btn-icon">⏳</span> Saving & Revoking Sessions...';
+      alertBox.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/auth/change-credentials', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            currentPassword,
+            newUsername,
+            newPassword,
+            confirmPassword,
+            captchaId,
+            captchaInput
+          })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          showPortalAlert('✅ ' + data.message, 'success');
+          portalForm.reset();
+          setTimeout(() => {
+            closePasswordPortalModal();
+            localStorage.removeItem('white_x_admin_token');
+            showLoginScreen('Password changed successfully! Please log in with your new credentials.');
+          }, 2000);
+        } else {
+          showPortalAlert('⚠️ ' + (data.message || 'Failed to update credentials'), 'danger');
+          loadPortalCaptcha();
+          document.getElementById('portalCaptchaInput').value = '';
+        }
+      } catch (err) {
+        showPortalAlert('⚠️ Network error: ' + err.message, 'danger');
+        loadPortalCaptcha();
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span class="btn-icon">💾</span> Save & Update Password';
+      }
+    });
+  }
+}
+
+function validatePasswordMatch() {
+  const newPwd = document.getElementById('portalNewPwd')?.value || '';
+  const confirmPwd = document.getElementById('portalConfirmPwd')?.value || '';
+  const indicator = document.getElementById('pwdMatchIndicator');
+  if (!indicator) return;
+
+  if (!confirmPwd) {
+    indicator.style.display = 'none';
+    return;
+  }
+
+  indicator.style.display = 'block';
+  if (newPwd === confirmPwd) {
+    indicator.textContent = '✅ Passwords match perfectly!';
+    indicator.style.color = '#10b981';
+  } else {
+    indicator.textContent = '❌ Passwords do not match yet';
+    indicator.style.color = '#f43f5e';
+  }
+}
+
+function showPortalAlert(message, type = 'danger') {
+  const alertBox = document.getElementById('portalAlertBox');
+  if (!alertBox) return;
+
+  alertBox.className = `alert-box alert-${type}`;
+  if (type === 'success') {
+    alertBox.style.background = 'rgba(16, 185, 129, 0.15)';
+    alertBox.style.border = '1px solid #10b981';
+    alertBox.style.color = '#10b981';
+  } else {
+    alertBox.style.background = 'rgba(244, 63, 94, 0.12)';
+    alertBox.style.border = '1px solid rgba(244, 63, 94, 0.4)';
+    alertBox.style.color = '#ff6b6b';
+  }
+  alertBox.textContent = message;
+  alertBox.style.display = 'block';
+}
+
+function openPasswordPortalModal(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const modal = document.getElementById('passwordPortalModal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+
+  const alertBox = document.getElementById('portalAlertBox');
+  if (alertBox) alertBox.style.display = 'none';
+  const currentPwd = document.getElementById('portalCurrentPwd');
+  const newPwd = document.getElementById('portalNewPwd');
+  const confirmPwd = document.getElementById('portalConfirmPwd');
+  const matchIndicator = document.getElementById('pwdMatchIndicator');
+  if (currentPwd) currentPwd.value = '';
+  if (newPwd) newPwd.value = '';
+  if (confirmPwd) confirmPwd.value = '';
+  if (matchIndicator) matchIndicator.style.display = 'none';
+
+  updatePasswordStrengthMeter('');
+  loadPortalCaptcha();
+  setTimeout(() => currentPwd?.focus(), 150);
+}
+
+function closePasswordPortalModal() {
+  const modal = document.getElementById('passwordPortalModal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function loadPortalCaptcha() {
+  const svgBox = document.getElementById('portalCaptchaSvgContainer');
+  const idInput = document.getElementById('portalCaptchaId');
+  const input = document.getElementById('portalCaptchaInput');
+  if (!svgBox) return;
+
+  svgBox.innerHTML = '<span class="captcha-loading">Loading challenge...</span>';
+  if (input) input.value = '';
+
+  try {
+    const res = await _originalFetch('/api/auth/captcha');
+    const data = await res.json();
+    if (data.success && data.svg) {
+      svgBox.innerHTML = data.svg;
+      if (idInput) idInput.value = data.captchaId;
+    }
+  } catch (_) {
+    svgBox.innerHTML = '<span class="text-danger" style="font-size: 11px;">⚠️ Failed. Click refresh.</span>';
+  }
+}
+
+function updatePasswordStrengthMeter(pwd) {
+  const bar = document.getElementById('pwdStrengthBar');
+  const text = document.getElementById('pwdStrengthText');
+  if (!bar || !text) return;
+
+  if (!pwd || pwd.length === 0) {
+    bar.style.width = '0%';
+    bar.style.background = '#f43f5e';
+    text.textContent = 'Password strength: none';
+    text.style.color = 'var(--text-muted)';
+    return;
+  }
+
+  let score = 0;
+  if (pwd.length >= 4) score += 25;
+  if (pwd.length >= 8) score += 25;
+  if (/[0-9]/.test(pwd)) score += 25;
+  if (/[A-Z]/.test(pwd) || /[^A-Za-z0-9]/.test(pwd)) score += 25;
+
+  bar.style.width = `${score}%`;
+  if (score <= 25) {
+    bar.style.background = '#f43f5e';
+    text.textContent = 'Weak (Needs more characters)';
+    text.style.color = '#f43f5e';
+  } else if (score <= 50) {
+    bar.style.background = '#f59e0b';
+    text.textContent = 'Fair (Add numbers or symbols)';
+    text.style.color = '#f59e0b';
+  } else if (score <= 75) {
+    bar.style.background = '#00e5ff';
+    text.textContent = 'Good (Strong)';
+    text.style.color = '#00e5ff';
+  } else {
+    bar.style.background = '#10b981';
+    text.textContent = 'Excellent (Very Strong)';
+    text.style.color = '#10b981';
+  }
 }
 
 // ------------------------------------------
