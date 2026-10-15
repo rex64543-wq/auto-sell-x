@@ -3,6 +3,7 @@ const path = require('path');
 const apiRoutes = require('./routes/api');
 
 function startDashboard(client, port = process.env.PORT || 3000) {
+  const listenPort = parseInt(process.env.PORT || port, 10) || 3000;
   const app = express();
 
   app.use(express.json());
@@ -19,9 +20,9 @@ function startDashboard(client, port = process.env.PORT || 3000) {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
   });
 
-  const server = app.listen(port, '0.0.0.0', () => {
+  const server = app.listen(listenPort, '0.0.0.0', () => {
     console.log('=============================================');
-    console.log(`🌐 Web Dashboard running at: http://0.0.0.0:${port} (Port ${port})`);
+    console.log(`🌐 Web Dashboard running at: http://0.0.0.0:${listenPort} (Port ${listenPort})`);
     console.log('=============================================');
   });
 
