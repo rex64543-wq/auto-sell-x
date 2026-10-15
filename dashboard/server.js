@@ -19,9 +19,9 @@ function startDashboard(client, port = process.env.PORT || 3000) {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
   });
 
-  const server = app.listen(port, () => {
+  const server = app.listen(port, '0.0.0.0', () => {
     console.log('=============================================');
-    console.log(`🌐 Web Dashboard running at: http://localhost:${port}`);
+    console.log(`🌐 Web Dashboard running at: http://0.0.0.0:${port} (Port ${port})`);
     console.log('=============================================');
   });
 

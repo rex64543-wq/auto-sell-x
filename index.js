@@ -74,6 +74,9 @@ async function deployCommands() {
 
 const { startDashboard } = require('./dashboard/server');
 
+// Start Web Dashboard immediately on launch so cloud platforms detect the open port instantly
+startDashboard(client);
+
 client.once('clientReady', async () => {
   console.log('=============================================');
   console.log(`🤖 Logged in as: ${client.user.tag}`);
@@ -87,9 +90,6 @@ client.once('clientReady', async () => {
 
   // Auto-deploy commands on launch
   await deployCommands();
-
-  // Start Web Dashboard
-  startDashboard(client);
 });
 
 const db = require('./database/db');
