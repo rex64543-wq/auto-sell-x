@@ -41,11 +41,11 @@ for (const file of commandFiles) {
  */
 async function deployCommands() {
   const token = process.env.DISCORD_TOKEN;
-  const clientId = process.env.CLIENT_ID;
+  const clientId = process.env.CLIENT_ID || '1559862419537268777';
   const guildId = process.env.GUILD_ID;
 
   if (!token || !clientId) {
-    console.warn('⚠️ DISCORD_TOKEN or CLIENT_ID missing in .env. Skipping slash command registration.');
+    console.warn('⚠️ DISCORD_TOKEN missing in environment variables. Skipping slash command registration.');
     return;
   }
 
@@ -189,13 +189,16 @@ process.on('uncaughtException', error => {
 const token = process.env.DISCORD_TOKEN;
 if (!token || token === 'YOUR_BOT_TOKEN_HERE') {
   console.log('================================================================');
-  console.log('⚠️  Please configure your DISCORD_TOKEN in the .env file!');
-  console.log('   1. Copy .env.example to .env');
-  console.log('   2. Paste your Discord Bot Token and Client ID');
-  console.log('   3. Run: npm start');
+  console.log('⚠️  DISCORD_TOKEN is NOT set in Render Environment Variables!');
+  console.log('   Go to Render -> Environment tab -> Add:');
+  console.log('   Key: DISCORD_TOKEN');
+  console.log('   Value: [Your Discord Bot Token]');
   console.log('================================================================');
 } else {
-  client.login(token).catch(err => {
+  console.log('🤖 Attempting Discord Gateway login with DISCORD_TOKEN...');
+  client.login(token).then(() => {
+    console.log('✅ Bot connected to Discord Gateway successfully!');
+  }).catch(err => {
     console.error('❌ Failed to log in to Discord:', err.message);
   });
 }

@@ -26,6 +26,15 @@ function startDashboard(client, port = process.env.PORT || 3000) {
     console.log('=============================================');
   });
 
+  // 24/7 Keep-Alive self-pinger to prevent cloud services (Render) from idling or sleeping
+  const externalUrl = process.env.RENDER_EXTERNAL_URL || 'https://white-x-store.onrender.com';
+  const keepAliveTimer = setInterval(() => {
+    fetch(`${externalUrl}/api/auth/captcha`)
+      .then(() => console.log('💓 Cloud 24/7 Keep-Alive Heartbeat sent.'))
+      .catch(() => {});
+  }, 10 * 60 * 1000);
+  if (keepAliveTimer && keepAliveTimer.unref) keepAliveTimer.unref();
+
   server.on('error', err => {
     if (err.code === 'EADDRINUSE') {
       console.warn(`⚠️ Port ${port} is in use. Trying port ${Number(port) + 1}...`);
