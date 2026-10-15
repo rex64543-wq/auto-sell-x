@@ -40,14 +40,18 @@ module.exports = function (client) {
           headers: { Authorization: `Bot ${token}` },
           signal: controller.signal
         });
-        clearTimeout(timeout);
-        const data = await probeRes.json().catch(() => ({}));
+        const text = await probeRes.text();
+        let data = {};
+        try { data = JSON.parse(text); } catch (_) {}
         discordApiProbe = {
           tested: true,
           httpStatus: probeRes.status,
           latencyMs: Date.now() - start,
+          retryAfter: probeRes.headers.get('retry-after'),
+          cfRay: probeRes.headers.get('cf-ray'),
+          rawBody: text.substring(0, 300),
           discordUsername: data?.username || null,
-          error: probeRes.status !== 200 ? (data?.message || `HTTP ${probeRes.status}`) : null
+          error: probeRes.status !== 200 ? (data?.message || text.substring(0, 100) || `HTTP ${probeRes.status}`) : null
         };
       } else {
         discordApiProbe = { tested: false, error: 'No DISCORD_TOKEN found in process.env' };
