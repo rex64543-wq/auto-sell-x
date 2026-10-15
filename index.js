@@ -98,6 +98,21 @@ const handleReady = (readyClient) => {
 client.once('clientReady', handleReady);
 client.once('ready', handleReady);
 
+client.on('error', error => {
+  console.error('❌ Discord client error:', error);
+  if (client.loginStatus) client.loginStatus.error = 'Client error: ' + (error?.message || error);
+});
+
+client.on('shardError', error => {
+  console.error('❌ Shard error:', error);
+  if (client.loginStatus) client.loginStatus.error = 'Shard error: ' + (error?.message || error);
+});
+
+client.on('shardDisconnect', (event, id) => {
+  console.warn(`⚠️ Shard ${id} disconnected:`, event);
+  if (client.loginStatus) client.loginStatus.error = `Shard disconnected (code ${event?.code || 'unknown'}): ${event?.reason || 'none'}`;
+});
+
 const db = require('./database/db');
 const purchaseFlow = require('./handlers/purchaseFlow');
 

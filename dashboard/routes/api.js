@@ -24,9 +24,38 @@ module.exports = function (client) {
     }
   });
 
-  // Health and bot connection status endpoint
-  router.get('/health', (req, res) => {
+  // Health and bot connection status endpoint with Discord API probe
+  router.get('/health', async (req, res) => {
     const isReady = client?.isReady?.() || false;
+    let discordApiProbe = { tested: false };
+
+    try {
+      const rawToken = process.env.DISCORD_TOKEN;
+      const token = rawToken ? rawToken.trim().replace(/^["']|["']$/g, '') : null;
+      if (token) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4000);
+        const start = Date.now();
+        const probeRes = await fetch('https://discord.com/api/v10/users/@me', {
+          headers: { Authorization: `Bot ${token}` },
+          signal: controller.signal
+        });
+        clearTimeout(timeout);
+        const data = await probeRes.json().catch(() => ({}));
+        discordApiProbe = {
+          tested: true,
+          httpStatus: probeRes.status,
+          latencyMs: Date.now() - start,
+          discordUsername: data?.username || null,
+          error: probeRes.status !== 200 ? (data?.message || `HTTP ${probeRes.status}`) : null
+        };
+      } else {
+        discordApiProbe = { tested: false, error: 'No DISCORD_TOKEN found in process.env' };
+      }
+    } catch (probeErr) {
+      discordApiProbe = { tested: true, error: probeErr?.name === 'AbortError' ? 'Discord API connection timed out (>4000ms)' : probeErr?.message };
+    }
+
     res.json({
       status: 'ok',
       botReady: isReady,
@@ -35,6 +64,7 @@ module.exports = function (client) {
       guildCount: client?.guilds?.cache?.size || 0,
       wsStatus: client?.ws?.status ?? -1,
       loginStatus: client?.loginStatus || null,
+      discordApiProbe,
       timestamp: new Date().toISOString()
     });
   });
