@@ -34,6 +34,7 @@ module.exports = function (client) {
       botId: client?.user?.id || null,
       guildCount: client?.guilds?.cache?.size || 0,
       wsStatus: client?.ws?.status ?? -1,
+      loginStatus: client?.loginStatus || null,
       timestamp: new Date().toISOString()
     });
   });

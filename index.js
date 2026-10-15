@@ -196,7 +196,17 @@ process.on('uncaughtException', error => {
 const rawToken = process.env.DISCORD_TOKEN;
 const token = rawToken ? rawToken.trim().replace(/^["']|["']$/g, '') : null;
 
+client.loginStatus = {
+  attempted: false,
+  tokenProvided: false,
+  tokenLength: 0,
+  tokenPrefix: null,
+  error: null,
+  connected: false
+};
+
 if (!token || token === 'YOUR_BOT_TOKEN_HERE') {
+  client.loginStatus.error = 'DISCORD_TOKEN is missing or set to placeholder in Render Environment Variables';
   console.log('================================================================');
   console.log('⚠️  DISCORD_TOKEN is NOT set in Render Environment Variables!');
   console.log('   Go to Render -> Environment tab -> Add:');
@@ -204,10 +214,17 @@ if (!token || token === 'YOUR_BOT_TOKEN_HERE') {
   console.log('   Value: [Your Discord Bot Token]');
   console.log('================================================================');
 } else {
+  client.loginStatus.attempted = true;
+  client.loginStatus.tokenProvided = true;
+  client.loginStatus.tokenLength = token.length;
+  client.loginStatus.tokenPrefix = token.substring(0, 10) + '...';
   console.log(`🤖 Attempting Discord Gateway login (token length: ${token.length})...`);
   client.login(token).then(() => {
+    client.loginStatus.connected = true;
+    client.loginStatus.error = null;
     console.log('✅ client.login resolved: Bot connected to Discord Gateway successfully!');
   }).catch(err => {
+    client.loginStatus.error = err?.message || String(err);
     console.error('❌ Failed to log in to Discord:', err);
   });
 }
