@@ -1,0 +1,22 @@
+{
+  "768020734231969793": {
+    "balance": 0,
+    "currency": "₹",
+    "history": [
+      {
+        "id": "MV8BQI6M38",
+        "type": "debit",
+        "amount": 100,
+        "note": "Purchased Uid-bypass (1 Day)",
+        "date": "2026-10-14T16:28:24.334Z"
+      },
+      {
+        "id": "MV8BADEAFG",
+        "type": "credit",
+        "amount": 100,
+        "note": "Top-up Order #MV8B9Z9206W",
+        "date": "2026-10-14T16:15:51.634Z"
+      }
+    ]
+  }
+}

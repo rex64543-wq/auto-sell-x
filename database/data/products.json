@@ -1,0 +1,420 @@
+{
+  "989": {
+    "id": "989",
+    "name": "xyz",
+    "category": "Tv",
+    "status": "safe",
+    "version": "8",
+    "features": [
+      "9"
+    ],
+    "plans": {
+      "1d": {
+        "label": "1 Day",
+        "durationDays": 1,
+        "price": 9,
+        "currency": "₹"
+      },
+      "7d": {
+        "label": "7 Days",
+        "durationDays": 7,
+        "price": 9,
+        "currency": "₹"
+      },
+      "30d": {
+        "label": "30 Days",
+        "durationDays": 30,
+        "price": 90,
+        "currency": "₹"
+      }
+    },
+    "deliveryType": "stock",
+    "keyauthConfig": {},
+    "customApiConfig": {}
+  },
+  "android-panel": {
+    "id": "android-panel",
+    "name": "Android-Panel",
+    "category": "Android",
+    "status": "safe",
+    "version": "v2.4",
+    "features": [
+      "📱 Android Stealth Injector (Root & Non-Root)",
+      "🎯 Auto Aimbot & Recoil Control (Smooth Aim)",
+      "👁️ Player ESP, Distance, Health & Lines",
+      "🛡️ Anti-Ban Bypass Security Engine",
+      "⚡ High Performance & 120 FPS Support"
+    ],
+    "plans": {
+      "1d": {
+        "label": "1 Day",
+        "durationDays": 1,
+        "price": 150,
+        "currency": "₹",
+        "variantId": "VAR-101"
+      },
+      "7d": {
+        "label": "7 Days",
+        "durationDays": 7,
+        "price": 500,
+        "currency": "₹",
+        "variantId": "VAR-102"
+      },
+      "30d": {
+        "label": "30 Days",
+        "durationDays": 30,
+        "price": 1200,
+        "currency": "₹",
+        "variantId": "VAR-103"
+      }
+    },
+    "deliveryType": "keyauth",
+    "keyauthConfig": {
+      "expiry": 30,
+      "mask": "ANDROID-XXXXXX-XXXXXX",
+      "level": 1
+    },
+    "customApiConfig": {},
+    "apiConnectionId": null,
+    "variantMapping": {
+      "1d": "VAR-101",
+      "7d": "VAR-102",
+      "30d": "VAR-103"
+    }
+  },
+  "external-panel": {
+    "id": "external-panel",
+    "name": "External-Panel",
+    "category": "PC",
+    "status": "safe",
+    "version": "v1.0",
+    "features": [
+      "💻 External Stealth Overlay (Undetected Engine)",
+      "🎯 Custom Crosshair & Memory Aim Lock",
+      "👁️ Player ESP, Vehicle & Loot Radar",
+      "🛡️ Bypass Anti-Cheat Security",
+      "⚡ High FPS & No Lag Performance"
+    ],
+    "plans": {
+      "1d": {
+        "label": "1 Day",
+        "durationDays": 1,
+        "price": 200,
+        "currency": "₹"
+      },
+      "7d": {
+        "label": "7 Days",
+        "durationDays": 7,
+        "price": 600,
+        "currency": "₹"
+      },
+      "30d": {
+        "label": "30 Days",
+        "durationDays": 30,
+        "price": 1500,
+        "currency": "₹"
+      }
+    },
+    "deliveryType": "keyauth",
+    "keyauthConfig": {
+      "expiry": 30,
+      "mask": "EXTERNAL-XXXXXX-XXXXXX",
+      "level": 1
+    },
+    "customApiConfig": {}
+  },
+  "internal-panel": {
+    "id": "internal-panel",
+    "name": "Internal-Panel",
+    "category": "PC",
+    "status": "safe",
+    "version": "v1.5",
+    "features": [
+      "💻 Pure Internal DirectX Hook (Zero Delay)",
+      "🎯 Silent Aim & Bullet Track Prediction",
+      "👁️ Bone Glow ESP & Item Name Filter",
+      "🛡️ Kernel-Level Anti-Detection Driver",
+      "⚡ Stream Proof & Recording Safe"
+    ],
+    "plans": {
+      "1d": {
+        "label": "1 Day",
+        "durationDays": 1,
+        "price": 250,
+        "currency": "₹"
+      },
+      "7d": {
+        "label": "7 Days",
+        "durationDays": 7,
+        "price": 700,
+        "currency": "₹"
+      },
+      "30d": {
+        "label": "30 Days",
+        "durationDays": 30,
+        "price": 1800,
+        "currency": "₹"
+      }
+    },
+    "deliveryType": "keyauth",
+    "keyauthConfig": {
+      "expiry": 30,
+      "mask": "INTERNAL-XXXXXX-XXXXXX",
+      "level": 1
+    },
+    "customApiConfig": {}
+  },
+  "uid-bypass": {
+    "id": "uid-bypass",
+    "name": "Uid-bypass",
+    "category": "Bypass",
+    "status": "safe",
+    "version": "v3.0",
+    "features": [
+      "🛡️ 100% Blacklist & Server Reset Protection",
+      "🔒 Unique Device ID Randomizer",
+      "🚀 Instant Matchmaking Fix",
+      "⚡ Safe for Main Accounts"
+    ],
+    "plans": {
+      "1d": {
+        "label": "1 Day",
+        "durationDays": 1,
+        "price": 100,
+        "currency": "₹"
+      },
+      "7d": {
+        "label": "7 Days",
+        "durationDays": 7,
+        "price": 350,
+        "currency": "₹"
+      },
+      "30d": {
+        "label": "30 Days",
+        "durationDays": 30,
+        "price": 800,
+        "currency": "₹"
+      }
+    },
+    "deliveryType": "stock",
+    "keyauthConfig": {},
+    "customApiConfig": {}
+  },
+  "emulator-bypass": {
+    "id": "emulator-bypass",
+    "name": "Emulator-Bypass",
+    "category": "PC / Bypass",
+    "status": "safe",
+    "version": "v2.1",
+    "features": [
+      "🛡️ Mobile Player Matchmaking in PC Emulator",
+      "⚡ LDPlayer & BlueStacks 5 Native Support",
+      "🔒 Anti-Report & Anti-Spectate Shield"
+    ],
+    "plans": {
+      "1d": {
+        "label": "1 Day",
+        "durationDays": 1,
+        "price": 150,
+        "currency": "₹"
+      },
+      "7d": {
+        "label": "7 Days",
+        "durationDays": 7,
+        "price": 450,
+        "currency": "₹"
+      },
+      "30d": {
+        "label": "30 Days",
+        "durationDays": 30,
+        "price": 1000,
+        "currency": "₹"
+      }
+    },
+    "deliveryType": "keyauth",
+    "keyauthConfig": {
+      "expiry": 30,
+      "mask": "BYPASS-XXXXXX-XXXXXX",
+      "level": 1
+    },
+    "customApiConfig": {}
+  },
+  "silent-exe": {
+    "id": "silent-exe",
+    "name": "Silent-EXE",
+    "category": "PC",
+    "status": "safe",
+    "version": "v1.8",
+    "features": [
+      "💻 1-Click Silent Loader (No USB needed)",
+      "🎯 Legit Silent Bullet Hitbox Expansion",
+      "⚡ 100% Undetected Tournament Config"
+    ],
+    "plans": {
+      "1d": {
+        "label": "1 Day",
+        "durationDays": 1,
+        "price": 180,
+        "currency": "₹"
+      },
+      "7d": {
+        "label": "7 Days",
+        "durationDays": 7,
+        "price": 550,
+        "currency": "₹"
+      },
+      "30d": {
+        "label": "30 Days",
+        "durationDays": 30,
+        "price": 1300,
+        "currency": "₹"
+      }
+    },
+    "deliveryType": "stock",
+    "keyauthConfig": {},
+    "customApiConfig": {}
+  },
+  "silent-apk": {
+    "id": "silent-apk",
+    "name": "Silent-Apk",
+    "category": "Android",
+    "status": "safe",
+    "version": "v2.0",
+    "features": [
+      "📱 Modified Safe Client APK",
+      "🎯 Magic Bullet & Headshot Rate 90%",
+      "⚡ Works on 32-bit & 64-bit Android"
+    ],
+    "plans": {
+      "1d": {
+        "label": "1 Day",
+        "durationDays": 1,
+        "price": 150,
+        "currency": "₹"
+      },
+      "7d": {
+        "label": "7 Days",
+        "durationDays": 7,
+        "price": 450,
+        "currency": "₹"
+      },
+      "30d": {
+        "label": "30 Days",
+        "durationDays": 30,
+        "price": 1100,
+        "currency": "₹"
+      }
+    },
+    "deliveryType": "stock",
+    "keyauthConfig": {},
+    "customApiConfig": {}
+  },
+  "aimkill-apk": {
+    "id": "aimkill-apk",
+    "name": "Aimkill-Apk",
+    "category": "Android",
+    "status": "safe",
+    "version": "v3.2",
+    "features": [
+      "📱 Brutal Rage Aim Kill Mode",
+      "🎯 Auto Fire When Target in Crosshair",
+      "👁️ 360 Degree Warning Radar"
+    ],
+    "plans": {
+      "1d": {
+        "label": "1 Day",
+        "durationDays": 1,
+        "price": 200,
+        "currency": "₹"
+      },
+      "7d": {
+        "label": "7 Days",
+        "durationDays": 7,
+        "price": 600,
+        "currency": "₹"
+      },
+      "30d": {
+        "label": "30 Days",
+        "durationDays": 30,
+        "price": 1400,
+        "currency": "₹"
+      }
+    },
+    "deliveryType": "stock",
+    "keyauthConfig": {},
+    "customApiConfig": {}
+  },
+  "streamer-panel": {
+    "id": "streamer-panel",
+    "name": "Streamer-Panel",
+    "category": "PC",
+    "status": "safe",
+    "version": "v4.0",
+    "features": [
+      "💻 100% Invisible on OBS & Discord Screen Share",
+      "🎯 Humanized Smoothing (Looks Natural on Stream)",
+      "👁️ Stream-Proof Wallhack & Loot ESP"
+    ],
+    "plans": {
+      "1d": {
+        "label": "1 Day",
+        "durationDays": 1,
+        "price": 300,
+        "currency": "₹"
+      },
+      "7d": {
+        "label": "7 Days",
+        "durationDays": 7,
+        "price": 900,
+        "currency": "₹"
+      },
+      "30d": {
+        "label": "30 Days",
+        "durationDays": 30,
+        "price": 2200,
+        "currency": "₹"
+      }
+    },
+    "deliveryType": "keyauth",
+    "keyauthConfig": {
+      "expiry": 30,
+      "mask": "STREAM-XXXXXX-XXXXXX",
+      "level": 1
+    },
+    "customApiConfig": {}
+  },
+  "br-mods-panel": {
+    "id": "br-mods-panel",
+    "name": "Br-Mods-Panel",
+    "category": "Android",
+    "status": "patched",
+    "version": "v1.0",
+    "features": [
+      "📱 Heavy Mod Menu with Flying & Speed Hack",
+      "🔴 Currently Detected by Anti-Cheat (Do NOT use right now)"
+    ],
+    "plans": {
+      "1d": {
+        "label": "1 Day",
+        "durationDays": 1,
+        "price": 250,
+        "currency": "₹"
+      },
+      "7d": {
+        "label": "7 Days",
+        "durationDays": 7,
+        "price": 750,
+        "currency": "₹"
+      },
+      "30d": {
+        "label": "30 Days",
+        "durationDays": 30,
+        "price": 1700,
+        "currency": "₹"
+      }
+    },
+    "deliveryType": "stock",
+    "keyauthConfig": {},
+    "customApiConfig": {}
+  }
+}

@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>White X Store — Web Control Center & Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- ============================================== -->
+  <!-- CYBER SECURITY LOGIN SCREEN WITH CAPTCHA      -->
+  <!-- ============================================== -->
+  <div id="loginScreen" class="login-wrapper">
+    <div class="login-backdrop-glow"></div>
+    <div class="login-box glass-card">
+      <div class="login-header">
+        <div class="login-shield-badge">
+          <span class="shield-icon">🛡️</span>
+          <span class="security-status-dot"></span>
+        </div>
+        <h2 class="login-title">White X Store</h2>
+        <p class="login-subtitle">Administrator Security Gateway & Control Panel</p>
+        <div class="security-level-pill">
+          <span>🔒 256-Bit Encrypted Session • Anti-Brute Force</span>
+        </div>
+      </div>
+
+      <div id="loginAlertBox" class="alert-box alert-danger" style="display: none;">
+        <span class="alert-icon">⚠️</span>
+        <span id="loginAlertMsg">Invalid credentials or CAPTCHA code</span>
+      </div>
+
+      <form id="adminLoginForm" class="login-form" autocomplete="off">
+        <div class="form-group">
+          <label for="loginUsername">Admin Username</label>
+          <div class="input-with-icon">
+            <span class="input-icon">👤</span>
+            <input type="text" id="loginUsername" class="form-input" placeholder="Enter admin username" required autofocus>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Master Password</label>
+          <div class="input-with-icon">
+            <span class="input-icon">🔑</span>
+            <input type="password" id="loginPassword" class="form-input" placeholder="Enter security password" required>
+            <button type="button" class="btn-toggle-pwd" id="btnToggleLoginPwd" title="Show/Hide Password">👁️</button>
+          </div>
+        </div>
+
+        <!-- DYNAMIC SECURITY CAPTCHA -->
+        <div class="form-group captcha-group">
+          <div class="captcha-label-row">
+            <span>Security Verification Code <span style="color: var(--accent-rose);">*</span></span>
+            <button type="button" class="btn-reload-captcha" id="btnReloadCaptcha" title="Generate New Captcha">
+              <span class="reload-icon">🔄</span> Refresh Code
+            </button>
+          </div>
+          
+          <div class="captcha-render-container">
+            <div id="captchaSvgContainer" class="captcha-svg-box">
+              <span class="captcha-loading">Generating secure captcha...</span>
+            </div>
+            <input type="hidden" id="captchaId">
+          </div>
+
+          <div class="captcha-input-row">
+            <input type="text" id="captchaInput" class="form-input captcha-input-field" 
+              placeholder="ENTER 5 CODE" maxlength="5" autocomplete="off" required>
+            <small class="captcha-hint">Type the 5 characters displayed in the box above (Case-insensitive)</small>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-login-submit" id="btnLoginSubmit">
+          <span class="btn-icon">🔐</span> Authenticate & Enter Dashboard
+        </button>
+      </form>
+
+      <div class="login-footer">
+        <span>Protected by Auto Sell Security Guard v2.0 • 5 failed attempts lockout</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-layout" id="appLayout" style="display: none;">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-box">
+          <span class="logo-icon">⚡</span>
+          <div class="logo-text">
+            <h2>White X Store</h2>
+            <span class="badge-sub">Control Center</span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#overview" class="nav-item active" data-tab="overview">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Overview</span>
+        </a>
+        <a href="#products" class="nav-item" data-tab="products">
+          <span class="nav-icon">📦</span>
+          <span class="nav-label">Products & Cheats</span>
+        </a>
+        <a href="#orders" class="nav-item" data-tab="orders">
+          <span class="nav-icon">🧾</span>
+          <span class="nav-label">Orders & Proofs</span>
+          <span class="nav-badge" id="pendingOrdersBadge" style="display: none;">0</span>
+        </a>
+        <a href="#wallets" class="nav-item" data-tab="wallets">
+          <span class="nav-icon">💳</span>
+          <span class="nav-label">Customer Wallets</span>
+        </a>
+        <a href="#stock" class="nav-item" data-tab="stock">
+          <span class="nav-icon">🔑</span>
+          <span class="nav-label">Stock & Keys</span>
+        </a>
+        <a href="#settings" class="nav-item" data-tab="settings">
+          <span class="nav-icon">⚙️</span>
+          <span class="nav-label">Store Settings</span>
+        </a>
+        <a href="#apiconnect" class="nav-item" data-tab="apiconnect">
+          <span class="nav-icon">🔌</span>
+          <span class="nav-label">API Connections</span>
+        </a>
+        <a href="#broadcast" class="nav-item" data-tab="broadcast">
+          <span class="nav-icon">🚀</span>
+          <span class="nav-label">Discord Deploy</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="bot-status-card">
+          <div class="status-indicator">
+            <span class="pulse-dot" id="botPulseDot"></span>
+            <span class="status-text" id="botStatusText">Checking Bot...</span>
+          </div>
+          <div class="bot-meta" id="botMetaText">Auto Sell Store#8906</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <!-- HEADER -->
+      <header class="top-navbar">
+        <div class="page-title-box">
+          <h1 id="pageTitle">Store Overview</h1>
+          <p id="pageSubtitle">Live statistics, sales analytics, and pending verification requests.</p>
+        </div>
+        <div class="top-actions">
+          <button class="btn btn-secondary btn-sm" id="btnRefreshData">
+            <span class="btn-icon">🔄</span> Refresh
+          </button>
+          <button class="btn btn-primary btn-sm" id="btnQuickAddProduct">
+            <span class="btn-icon">➕</span> Add Product
+          </button>
+          <button class="btn btn-gradient btn-sm" id="btnQuickDeploy">
+            <span class="btn-icon">🚀</span> Deploy Shop
+          </button>
+          <button class="btn btn-sm" id="btnAdminLogout" style="border: 1px solid rgba(244,63,94,0.4); color: #f43f5e; background: rgba(244,63,94,0.1); font-weight: 600;">
+            <span class="btn-icon">🚪</span> Logout
+          </button>
+        </div>
+      </header>
+
+      <!-- VIEWS CONTAINER -->
+      <div class="content-body">
+        
+        <!-- ===================================== -->
+        <!-- 1. OVERVIEW VIEW                      -->
+        <!-- ===================================== -->
+        <section id="view-overview" class="view-section active">
+          <!-- HERO COMMAND CENTER BANNER -->
+          <div class="overview-hero">
+            <div class="hero-content">
+              <div class="hero-badge">
+                <span class="pulse-dot-cyan"></span>
+                <span>White X Store • Command Center v2.0</span>
+              </div>
+              <h2 class="hero-title">Welcome back, Administrator! 👋</h2>
+              <p class="hero-subtitle">
+                Your automated Discord marketplace is fully synchronized. Manage real-time cheat statuses, 
+                approve payment screenshots, credit customer wallets, and deploy shop embeds in 1-click.
+              </p>
+              <div class="hero-pills-row">
+                <div class="hero-stat-pill">
+                  <span class="icon">⚡</span>
+                  <span>Engine: <strong>0s Automated Key Delivery</strong></span>
+                </div>
+                <div class="hero-stat-pill">
+                  <span class="icon">🛡️</span>
+                  <span>Bypass: <strong>Anti-Ban Detection Active</strong></span>
+                </div>
+                <div class="hero-stat-pill">
+                  <span class="icon">💳</span>
+                  <span>Wallet: <strong>1-Click Instant Balance</strong></span>
+                </div>
+              </div>
+            </div>
+            <div class="hero-actions">
+              <button class="btn btn-gradient" onclick="switchTab('broadcast')">
+                <span class="btn-icon">🚀</span> Deploy Shop
+              </button>
+              <button class="btn btn-secondary" onclick="openAddProductModal()">
+                <span class="btn-icon">➕</span> Add Product
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI GRID -->
+          <div class="kpi-grid">
+            <div class="kpi-card glass-glow-cyan">
+              <div class="kpi-icon-box">💰</div>
+              <div class="kpi-info">
+                <span class="kpi-label">Total Revenue</span>
+                <h3 class="kpi-value" id="kpiRevenue">₹0</h3>
+              </div>
+            </div>
+
+            <div class="kpi-card glass-glow-green">
+              <div class="kpi-icon-box">✅</div>
+              <div class="kpi-info">
+                <span class="kpi-label">Completed Sales</span>
+                <h3 class="kpi-value" id="kpiCompletedOrders">0</h3>
+              </div>
+            </div>
+
+            <div class="kpi-card glass-glow-amber" id="cardPendingOrders">
+              <div class="kpi-icon-box">⏳</div>
+              <div class="kpi-info">
+                <span class="kpi-label">Pending Verifications</span>
+                <h3 class="kpi-value" id="kpiPendingOrders">0</h3>
+              </div>
+            </div>
+
+            <div class="kpi-card glass-glow-purple">
+              <div class="kpi-icon-box">💳</div>
+              <div class="kpi-info">
+                <span class="kpi-label">Wallets Balance</span>
+                <h3 class="kpi-value" id="kpiWalletBalance">₹0</h3>
+              </div>
+            </div>
+
+            <div class="kpi-card glass-glow-blue">
+              <div class="kpi-icon-box">🛒</div>
+              <div class="kpi-info">
+                <span class="kpi-label">Active Panels</span>
+                <h3 class="kpi-value" id="kpiProductsCount">0</h3>
+              </div>
+            </div>
+          </div>
+
+          <!-- PENDING APPROVALS ALERT / WIDGET -->
+          <div class="card glass-card pending-widget" id="pendingApprovalsWidget" style="display: none;">
+            <div class="card-header">
+              <div class="header-title">
+                <span class="pulse-amber"></span>
+                <h3>🚨 Manual Payment Verifications Awaiting Your Approval</h3>
+              </div>
+              <span class="count-pill" id="pendingCountPill">0 Orders</span>
+            </div>
+            <div class="pending-list" id="pendingOrdersList">
+              <!-- Injected by JS -->
+            </div>
+          </div>
+
+          <!-- RECENT ORDERS TABLE -->
+          <div class="card glass-card">
+            <div class="card-header">
+              <div class="header-title">
+                <h3>📜 Recent Orders & Activity</h3>
+              </div>
+              <a href="#orders" class="link-btn" onclick="switchTab('orders')">View All Orders →</a>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Buyer</th>
+                    <th>Product / Type</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Status</th>
+                    <th>Time</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="recentOrdersTbody">
+                  <tr><td colspan="8" class="text-center muted">Loading orders...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- QUICK CHEATS & PANELS MATRIX -->
+          <div class="card glass-card">
+            <div class="card-header">
+              <div class="header-title">
+                <h3>⚡ Quick Cheats & Panels Control Matrix</h3>
+              </div>
+              <a href="#products" class="link-btn" onclick="switchTab('products')">Full Catalog & Editor →</a>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Cheat / Panel</th>
+                    <th>Category</th>
+                    <th>Version</th>
+                    <th>Live Status</th>
+                    <th>1D Price</th>
+                    <th>7D Price</th>
+                    <th>30D Price</th>
+                    <th>Stock Keys</th>
+                    <th>Quick Toggle</th>
+                  </tr>
+                </thead>
+                <tbody id="overviewMatrixTbody">
+                  <tr><td colspan="9" class="text-center muted">Loading cheat matrix...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================== -->
+        <!-- 2. PRODUCTS & CHEATS VIEW             -->
+        <!-- ===================================== -->
+        <section id="view-products" class="view-section">
+          <div class="section-toolbar">
+            <div class="filter-pills" id="categoryFilterPills">
+              <button class="pill-btn active" data-cat="all">All Panels</button>
+              <button class="pill-btn" data-cat="Android">📱 Android</button>
+              <button class="pill-btn" data-cat="PC">💻 PC</button>
+              <button class="pill-btn" data-cat="Bypass">🛡️ Bypass</button>
+              <button class="pill-btn" data-cat="iOS">🍎 iOS</button>
+            </div>
+            <button class="btn btn-primary btn-sm" id="btnAddNewProduct">
+              <span class="btn-icon">➕</span> Add New Product
+            </button>
+          </div>
+
+          <div class="products-grid" id="productsGrid">
+            <!-- Injected by JS -->
+          </div>
+        </section>
+
+        <!-- ===================================== -->
+        <!-- 3. ORDERS & PROOFS VIEW               -->
+        <!-- ===================================== -->
+        <section id="view-orders" class="view-section">
+          <div class="section-toolbar">
+            <div class="search-box">
+              <input type="text" id="orderSearchInput" placeholder="🔍 Search Order ID, Buyer ID, UTR, Product...">
+            </div>
+            <div class="filter-pills" id="orderStatusFilters">
+              <button class="pill-btn active" data-status="all">All Orders</button>
+              <button class="pill-btn" data-status="pending_verification">⏳ Pending Approval</button>
+              <button class="pill-btn" data-status="completed">✅ Approved</button>
+              <button class="pill-btn" data-status="declined">❌ Declined</button>
+            </div>
+          </div>
+
+          <div class="card glass-card">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Buyer (Discord ID)</th>
+                    <th>Item & Duration</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>UTR / Ref ID</th>
+                    <th>Screenshot Proof</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="allOrdersTbody">
+                  <tr><td colspan="10" class="text-center muted">Loading orders...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================== -->
+        <!-- 4. CUSTOMER WALLETS VIEW              -->
+        <!-- ===================================== -->
+        <section id="view-wallets" class="view-section">
+          <div class="section-toolbar">
+            <div class="search-box">
+              <input type="text" id="walletSearchInput" placeholder="🔍 Search Discord User ID...">
+            </div>
+          </div>
+
+          <div class="card glass-card">
+            <div class="card-header">
+              <h3>💳 User Wallets & Ledger</h3>
+              <span class="muted" id="walletsSummaryText">0 Registered Wallets</span>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Discord User ID</th>
+                    <th>Current Balance</th>
+                    <th>Transactions</th>
+                    <th>Recent Activity</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="walletsTbody">
+                  <tr><td colspan="5" class="text-center muted">Loading wallets...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================== -->
+        <!-- 5. STOCK & KEYS VIEW                  -->
+        <!-- ===================================== -->
+        <section id="view-stock" class="view-section">
+          <div class="stock-grid" id="stockGrid">
+            <!-- Injected by JS -->
+          </div>
+        </section>
+
+        <!-- ===================================== -->
+        <!-- 6. STORE SETTINGS VIEW                -->
+        <!-- ===================================== -->
+        <section id="view-settings" class="view-section">
+          <div class="settings-grid">
+            <!-- Branding & General -->
+            <div class="card glass-card">
+              <div class="card-header">
+                <h3>🏪 Store Branding & General</h3>
+              </div>
+              <div class="form-group">
+                <label>Store Name</label>
+                <input type="text" id="settingStoreName" class="form-input" placeholder="White X Store">
+              </div>
+              <div class="form-group">
+                <label>Checkout Mode</label>
+                <select id="settingCheckoutMode" class="form-input">
+                  <option value="direct">Direct In-Shop (No Ticket Channels) — Recommended</option>
+                  <option value="ticket">Private Ticket Rooms (#ticket-xxx for Client & Admin)</option>
+                </select>
+                <small class="muted">Direct mode keeps everything in the shop channel privately (ephemeral). Ticket mode creates a private channel per order.</small>
+              </div>
+            </div>
+
+            <!-- Payment Gateways Management (Dynamic Add & Delete) -->
+            <div class="card glass-card" style="grid-column: 1 / -1;">
+              <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div>
+                  <h3>💳 Payment Methods & Gateways</h3>
+                  <small class="muted">Add, delete, edit, or toggle payment methods active in the Discord store checkout</small>
+                </div>
+                <button type="button" class="btn btn-primary btn-sm" id="btnAddNewPaymentMethod">
+                  <span class="btn-icon">➕</span> Add Payment Method
+                </button>
+              </div>
+              <div id="paymentMethodsList" class="pm-cards-container">
+                <!-- Rendered dynamically via app.js -->
+              </div>
+            </div>
+
+            <!-- Dynamic Store Currency Management System (Default Currency, Add / Edit / Remove) -->
+            <div class="card glass-card">
+              <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div>
+                  <h3>💱 Store Currency Management (Add / Remove / Rates)</h3>
+                  <small class="muted">Set your store's default currency, add new currencies, adjust live exchange rates, or remove currencies</small>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button type="button" class="btn btn-sm btn-primary" onclick="openAddCurrencyModal()">
+                    ➕ Add Currency
+                  </button>
+                </div>
+              </div>
+
+              <!-- Default Currency Selector Banner -->
+              <div style="margin-bottom: 16px; padding: 14px 18px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 16px;">⭐</span>
+                    <strong style="font-size: 14px; color: #93c5fd;">Default Store & Checkout Currency:</strong>
+                    <span class="badge badge-primary" id="currentDefaultBadge" style="font-size: 12px; font-weight: 700;">USD ($)</span>
+                  </div>
+                  <p class="muted" style="margin: 4px 0 0 0; font-size: 11px;">Product catalog details and customer checkout screens will default to this currency.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <label style="margin: 0; font-size: 12px; font-weight: 600;">Switch Default:</label>
+                  <select id="settingDefaultCurrency" class="form-input" style="width: auto; min-width: 170px; font-weight: 600;" onchange="handleDefaultCurrencyChange(this.value)">
+                    <!-- Options populated via JS -->
+                  </select>
+                </div>
+              </div>
+
+              <!-- Active Currencies Table -->
+              <div class="table-container" style="border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 16px;">
+                <table class="data-table" id="currenciesTable">
+                  <thead>
+                    <tr>
+                      <th>Flag & Code</th>
+                      <th>Currency Name</th>
+                      <th>Symbol</th>
+                      <th>Exchange Rate (1 INR = X)</th>
+                      <th>Default Status</th>
+                      <th style="text-align: right;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="currenciesTableBody">
+                    <!-- Rendered via JS -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Live Currency Calculator Tool -->
+              <div class="currency-converter-box" style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-subtle); padding: 14px; border-radius: var(--radius-sm);">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                  <strong style="color: var(--accent-cyan); font-size: 13px;">⚡ Live Multi-Currency Preview Calculator</strong>
+                  <span class="muted" style="font-size: 11px;">Simulate live price conversion across all active currencies in real time</span>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <label style="margin: 0; font-size: 12px; font-weight: 600;">Base Amount (₹ INR):</label>
+                    <input type="number" id="calcInputInr" class="form-input form-input-sm" value="150" style="width: 100px; font-family: var(--font-mono);" oninput="updateCurrencyCalcPreview()">
+                  </div>
+                  <div id="currencyCalcResults" style="display: flex; gap: 10px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 12px;">
+                    <!-- Rendered via JS -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Shop Page Embed Customization -->
+            <div class="card glass-card">
+              <div class="card-header">
+                <h3>🖼️ First Page Banner & Embed Customization</h3>
+              </div>
+              <div class="form-group">
+                <label>Banner Photo or Animated Video GIF URL</label>
+                <input type="text" id="settingBannerUrl" class="form-input" placeholder="https://i.imgur.com/8Qe87dE.png">
+                <div class="banner-preview-box" id="bannerPreviewBox">
+                  <img src="" id="bannerPreviewImg" alt="Banner Preview" style="display: none;">
+                  <span class="muted" id="bannerPlaceholder">Banner Preview appears here</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Embed Accent Color (Hex)</label>
+                <input type="text" id="settingEmbedColor" class="form-input" placeholder="#00d2ff">
+              </div>
+              <div class="form-group">
+                <label>First Page Title</label>
+                <input type="text" id="settingShopTitle" class="form-input">
+              </div>
+              <div class="form-group">
+                <label>First Page Description</label>
+                <textarea id="settingShopDescription" class="form-input" rows="4"></textarea>
+              </div>
+            </div>
+
+            <!-- Discord Channels & Roles -->
+            <div class="card glass-card">
+              <div class="card-header">
+                <h3>🤖 Discord Channels & Roles</h3>
+              </div>
+              <div class="form-group">
+                <label>Staff Verification Channel ID</label>
+                <input type="text" id="settingVerificationChannelId" class="form-input" placeholder="1555740499166494800">
+                <small class="muted">Where staff receive payment screenshot proofs and approve/decline orders.</small>
+              </div>
+              <div class="form-group">
+                <label>Public Sales Log Channel ID</label>
+                <input type="text" id="settingLogChannelId" class="form-input" placeholder="1555740499166494800">
+                <small class="muted">Where public congratulations logs are sent upon successful key delivery.</small>
+              </div>
+              <div class="form-group">
+                <label>🛡️ Staff / Admin Role ID (Authorized Management Role)</label>
+                <input type="text" id="settingAdminRoleId" class="form-input" placeholder="e.g. 1475437652059754526">
+                <small class="muted">Users with this role (along with the Server Owner) can execute management commands like <code>/product</code>, <code>/stock</code>, <code>/setup</code>, <code>/order</code>, <code>/shop send</code>, <code>/wallet add</code>, and approve payments.</small>
+              </div>
+              <div class="form-group">
+                <label>👑 Bot / Co-Owner User ID (Optional)</label>
+                <input type="text" id="settingOwnerId" class="form-input" placeholder="e.g. 123456789012345678">
+                <small class="muted">The Discord Server Owner has access automatically. Use this to grant full command access to a specific co-owner or bot developer.</small>
+              </div>
+              <div class="form-group">
+                <label>Customer Role ID (Granted upon purchase)</label>
+                <input type="text" id="settingCustomerRoleId" class="form-input" placeholder="Role ID to give buyers">
+              </div>
+              <div class="form-group">
+                <label>Ticket Category ID (Optional)</label>
+                <input type="text" id="settingTicketCategoryId" class="form-input" placeholder="Category ID for tickets (if in ticket mode)">
+              </div>
+            </div>
+
+            <!-- Admin Credentials & Security Card -->
+            <div class="card glass-card">
+              <div class="card-header">
+                <h3>🛡️ Admin Credentials & Master Password</h3>
+              </div>
+              <p class="muted" style="margin-bottom: 16px; font-size: 13px;">
+                Update the master administrator username and password used to access this web dashboard.
+              </p>
+              <div id="credAlertBox" class="alert-box" style="display: none; margin-bottom: 14px;"></div>
+              <form id="adminCredentialsForm">
+                <div class="form-group">
+                  <label>Current Master Password <span style="color: var(--accent-rose);">*</span></label>
+                  <input type="password" id="credCurrentPassword" class="form-input" placeholder="Enter current password to authorize changes" required>
+                </div>
+                <div class="form-row">
+                  <div class="form-group flex-1">
+                    <label>New Admin Username <span style="color: var(--accent-rose);">*</span></label>
+                    <input type="text" id="credNewUsername" class="form-input" placeholder="e.g. admin or owner" required>
+                  </div>
+                  <div class="form-group flex-1">
+                    <label>New Master Password <span style="color: var(--accent-rose);">*</span></label>
+                    <input type="password" id="credNewPassword" class="form-input" placeholder="Minimum 4 characters" required>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-secondary btn-sm" id="btnSaveCredentials" style="border-color: rgba(0, 229, 255, 0.4); color: #00e5ff;">
+                  <span class="btn-icon">🔒</span> Update Login Credentials
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div class="settings-actions">
+            <button class="btn btn-primary btn-lg" id="btnSaveSettings">
+              <span class="btn-icon">💾</span> Save All Store Settings
+            </button>
+          </div>
+        </section>
+
+        <!-- ===================================== -->
+        <!-- 7. DISCORD BROADCAST VIEW             -->
+        <!-- ===================================== -->
+        <section id="view-broadcast" class="view-section">
+          <div class="broadcast-container card glass-card">
+            <div class="card-header">
+              <h3>🚀 Deploy Store Catalog to Discord Channel</h3>
+              <p class="muted">Send or re-deploy the official White X Store catalog message with the interactive dropdown menu and wallet buttons.</p>
+            </div>
+            <div class="form-group">
+              <label>Discord Target Channel ID</label>
+              <input type="text" id="broadcastChannelId" class="form-input" placeholder="e.g. 1555740499166494800">
+              <small class="muted">Leave blank to use the default configured channel.</small>
+            </div>
+            <button class="btn btn-gradient btn-lg" id="btnExecuteBroadcast">
+              <span class="btn-icon">📢</span> Send / Refresh Store in Discord Now
+            </button>
+            <div id="broadcastStatus" class="broadcast-status-msg" style="display: none;"></div>
+          </div>
+        </section>
+
+        <!-- ===================================== -->
+        <!-- 8. API CONNECTIONS & VARIANT MAPPING  -->
+        <!-- ===================================== -->
+        <section id="view-apiconnect" class="view-section">
+          <!-- HERO BANNER -->
+          <div class="overview-hero" style="margin-bottom: 24px;">
+            <div class="hero-content">
+              <div class="hero-badge">
+                <span class="pulse-dot-cyan"></span>
+                <span>Automated Reseller & Provider Integration</span>
+              </div>
+              <h2 class="hero-title">🔌 API Key Connections & Variant ID Mapping</h2>
+              <p class="hero-subtitle">
+                Connect external license providers, KeyAuth Seller API, or SMM Reseller Panels. Map each product variant (1 Day, 7 Days, 30 Days) 
+                to external Variant / Service IDs for 100% automated 0-second key delivery.
+              </p>
+            </div>
+            <div class="hero-actions">
+              <button class="btn btn-primary" onclick="openNewApiConnectionModal()">
+                <span class="btn-icon">➕</span> Connect API Provider
+              </button>
+            </div>
+          </div>
+
+          <!-- CONNECTED API PROVIDERS GRID -->
+          <div class="card glass-card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <div>
+                <h3>🌐 Connected External API Providers</h3>
+                <p class="muted">Active API endpoints and secret keys configured for automatic stock generation & reseller calls.</p>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="openNewApiConnectionModal()">
+                <span>➕</span> Add API Connection
+              </button>
+            </div>
+            <div id="apiConnectionsList" class="api-cards-grid">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- PRODUCT VARIANT ID MAPPING MATRIX -->
+          <div class="card glass-card">
+            <div class="card-header">
+              <div>
+                <h3>⚡ Product Variant ID Mapping Matrix</h3>
+                <p class="muted">Map internal product plans (1D, 7D, 30D) to the external Variant ID or Service ID used by your connected API provider.</p>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <input type="text" id="variantFilterSearch" class="form-input form-input-sm" placeholder="🔍 Search product..." oninput="filterVariantMappingTable()" style="max-width: 200px;">
+              </div>
+            </div>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Product Name</th>
+                    <th>Category</th>
+                    <th>Connected API</th>
+                    <th>1 Day Variant ID</th>
+                    <th>7 Days Variant ID</th>
+                    <th>30 Days Variant ID</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="variantMappingTbody">
+                  <!-- Rendered via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ===================================== -->
+  <!-- MODALS                                -->
+  <!-- ===================================== -->
+
+  <!-- Modal: Add / Edit Product -->
+  <div class="modal-backdrop" id="productModal">
+    <div class="modal-box glass-card">
+      <div class="modal-header">
+        <h3 id="productModalTitle">Add New Product / Panel</h3>
+        <button class="modal-close-btn" onclick="closeModal('productModal')">&times;</button>
+      </div>
+      <form id="productForm">
+        <input type="hidden" id="prodEditId">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Product ID (slug)</label>
+              <input type="text" id="prodInputId" class="form-input" placeholder="e.g. brutal-panel" required>
+            </div>
+            <div class="form-group flex-1">
+              <label>Display Name</label>
+              <input type="text" id="prodInputName" class="form-input" placeholder="e.g. Brutal-Panel" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Category</label>
+              <select id="prodInputCategory" class="form-input">
+                <option value="Android">📱 Android</option>
+                <option value="PC">💻 PC</option>
+                <option value="Bypass">🛡️ Bypass</option>
+                <option value="iOS">🍎 iOS</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label>Status</label>
+              <select id="prodInputStatus" class="form-input">
+                <option value="safe">🟢 Safe (Undetected)</option>
+                <option value="maintenance">🟡 Maintenance</option>
+                <option value="patched">🔴 Patched (Offline)</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label>Version</label>
+              <input type="text" id="prodInputVersion" class="form-input" placeholder="v2.5">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Features (One feature per line)</label>
+            <textarea id="prodInputFeatures" class="form-input" rows="4" placeholder="Auto Aimbot & Recoil Control&#10;Player ESP, Distance & Health&#10;Anti-Ban Security Engine"></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>1 Day Price (₹)</label>
+              <input type="number" id="prodInput1d" class="form-input" placeholder="150" required>
+            </div>
+            <div class="form-group flex-1">
+              <label>7 Days Price (₹)</label>
+              <input type="number" id="prodInput7d" class="form-input" placeholder="500" required>
+            </div>
+            <div class="form-group flex-1">
+              <label>30 Days Price (₹)</label>
+              <input type="number" id="prodInput30d" class="form-input" placeholder="1200" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Delivery Method</label>
+            <select id="prodInputDelivery" class="form-input" onchange="toggleProductModalDeliveryFields()">
+              <option value="keyauth">KeyAuth Seller API (Automated Key Generation)</option>
+              <option value="custom_api">Custom REST API / Reseller Panel (API Key + Variant ID)</option>
+              <option value="stock">Local Stock Pool (Keys from Dashboard)</option>
+            </select>
+          </div>
+
+          <!-- Dynamic API Connection & Variant ID Mapping in Product Modal -->
+          <div id="prodModalApiFields" class="form-row" style="background: rgba(0,229,255,0.04); border: 1px solid var(--border-subtle); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 16px;">
+            <div class="form-group flex-1">
+              <label>Connected API Provider</label>
+              <select id="prodInputApiConnection" class="form-input">
+                <option value="">-- Direct / Default API --</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label>1 Day Variant ID</label>
+              <input type="text" id="prodInputVar1d" class="form-input" placeholder="e.g. 101 or v_1d">
+            </div>
+            <div class="form-group flex-1">
+              <label>7 Days Variant ID</label>
+              <input type="text" id="prodInputVar7d" class="form-input" placeholder="e.g. 102 or v_7d">
+            </div>
+            <div class="form-group flex-1">
+              <label>30 Days Variant ID</label>
+              <input type="text" id="prodInputVar30d" class="form-input" placeholder="e.g. 103 or v_30d">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Download / Access Link (Optional)</label>
+            <input type="text" id="prodInputDownload" class="form-input" placeholder="https://mediafire.com/... or loader link">
+          </div>
+
+          <div class="form-group">
+            <label>Activation Instructions (Optional)</label>
+            <textarea id="prodInputInstructions" class="form-input" rows="2" placeholder="1. Open loader&#10;2. Paste key&#10;3. Launch game"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('productModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Edit Pricing Only -->
+  <div class="modal-backdrop" id="pricingModal">
+    <div class="modal-box glass-card modal-sm">
+      <div class="modal-header">
+        <h3 id="pricingModalTitle">Edit Plan Prices</h3>
+        <button class="modal-close-btn" onclick="closeModal('pricingModal')">&times;</button>
+      </div>
+      <form id="pricingForm">
+        <input type="hidden" id="pricingProdId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>1 Day Price (₹)</label>
+            <input type="number" id="pricingInput1d" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label>7 Days Price (₹)</label>
+            <input type="number" id="pricingInput7d" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label>30 Days Price (₹)</label>
+            <input type="number" id="pricingInput30d" class="form-input" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('pricingModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Prices</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Screenshot Proof Lightbox -->
+  <div class="modal-backdrop" id="proofModal">
+    <div class="modal-box glass-card modal-lightbox">
+      <div class="modal-header">
+        <h3 id="proofModalTitle">Payment Proof Screenshot</h3>
+        <button class="modal-close-btn" onclick="closeModal('proofModal')">&times;</button>
+      </div>
+      <div class="modal-body text-center">
+        <img src="" id="proofModalImg" class="proof-full-img" alt="Payment Proof">
+        <div class="proof-meta-box" id="proofModalMeta"></div>
+      </div>
+      <div class="modal-footer" id="proofModalActions">
+        <!-- Injected approve/decline buttons -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Decline Order Reason -->
+  <div class="modal-backdrop" id="declineModal">
+    <div class="modal-box glass-card modal-sm">
+      <div class="modal-header">
+        <h3 id="declineModalTitle">Decline Order</h3>
+        <button class="modal-close-btn" onclick="closeModal('declineModal')">&times;</button>
+      </div>
+      <form id="declineForm">
+        <input type="hidden" id="declineOrderId">
+        <div class="modal-body">
+          <p class="muted">Please provide the reason for declining. This reason will be sent to the customer via Discord DM.</p>
+          <div class="form-group">
+            <label>Reason</label>
+            <textarea id="declineReasonInput" class="form-input" rows="3" required placeholder="e.g. UTR number not found in bank statement, invalid amount, screenshot is unclear."></textarea>
+          </div>
+          <div class="quick-reasons">
+            <span class="reason-chip" onclick="setDeclineReason('Payment not received in bank account / UTR invalid.')">Invalid UTR</span>
+            <span class="reason-chip" onclick="setDeclineReason('Amount transferred is less than product price.')">Amount Mismatch</span>
+            <span class="reason-chip" onclick="setDeclineReason('Fake or edited payment screenshot.')">Invalid Screenshot</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('declineModal')">Cancel</button>
+          <button type="submit" class="btn btn-danger">Confirm Decline</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Adjust Wallet Balance -->
+  <div class="modal-backdrop" id="walletModal">
+    <div class="modal-box glass-card modal-sm">
+      <div class="modal-header">
+        <h3 id="walletModalTitle">Adjust Wallet Balance</h3>
+        <button class="modal-close-btn" onclick="closeModal('walletModal')">&times;</button>
+      </div>
+      <form id="walletForm">
+        <input type="hidden" id="walletUserId">
+        <div class="modal-body">
+          <div class="user-pill-banner" id="walletUserBanner"></div>
+          <div class="form-group">
+            <label>Operation</label>
+            <select id="walletActionType" class="form-input">
+              <option value="add">➕ Add / Credit Balance</option>
+              <option value="remove">➖ Deduct / Debit Balance</option>
+              <option value="set">✏️ Set Exact Balance</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Amount (₹ INR)</label>
+            <input type="number" id="walletAmountInput" class="form-input" placeholder="e.g. 500" required min="1">
+          </div>
+          <div class="form-group">
+            <label>Reason / Audit Note</label>
+            <input type="text" id="walletNoteInput" class="form-input" placeholder="e.g. Bonus, Manual Deposit, Refund">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('walletModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Balance</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: View Wallet History -->
+  <div class="modal-backdrop" id="walletHistoryModal">
+    <div class="modal-box glass-card">
+      <div class="modal-header">
+        <h3 id="walletHistoryTitle">Wallet Transaction Ledger</h3>
+        <button class="modal-close-btn" onclick="closeModal('walletHistoryModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Note / Reference</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="walletHistoryTbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('walletHistoryModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add Stock Keys -->
+  <div class="modal-backdrop" id="stockModal">
+    <div class="modal-box glass-card">
+      <div class="modal-header">
+        <h3 id="stockModalTitle">Add License Keys to Stock Pool</h3>
+        <button class="modal-close-btn" onclick="closeModal('stockModal')">&times;</button>
+      </div>
+      <form id="stockForm">
+        <input type="hidden" id="stockProductId">
+        <div class="modal-body">
+          <p class="muted">Paste license keys below (one key per line). These keys will be automatically dispensed when customers purchase this panel.</p>
+          <div class="form-group">
+            <label>Keys (One per line)</label>
+            <textarea id="stockKeysInput" class="form-input code-font" rows="8" placeholder="ANDROID-XXXXXX-YYYYYY&#10;ANDROID-AAAAAA-BBBBBB&#10;ANDROID-111111-222222" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('stockModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Deposit Keys</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add / Edit Payment Method -->
+  <div class="modal-backdrop" id="paymentMethodModal">
+    <div class="modal-box glass-card">
+      <div class="modal-header">
+        <h3 id="pmModalTitle">💳 Add Payment Method</h3>
+        <button class="modal-close-btn" onclick="closeModal('paymentMethodModal')">&times;</button>
+      </div>
+      <form id="paymentMethodForm">
+        <input type="hidden" id="pmIsEdit" value="false">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Method Key / ID <span style="color: var(--accent-rose);">*</span></label>
+              <input type="text" id="pmKey" class="form-input" placeholder="e.g. easypaisa, jazzcash, upi, card" required>
+              <small class="muted">Unique internal code (e.g. easypaisa)</small>
+            </div>
+            <div class="form-group flex-1">
+              <label>Display Icon / Emoji</label>
+              <input type="text" id="pmEmoji" class="form-input" placeholder="e.g. 📱, 🇵🇰, 🇧🇩, 💳, 🪙, 🅿️">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Method Display Name <span style="color: var(--accent-rose);">*</span></label>
+              <input type="text" id="pmName" class="form-input" placeholder="e.g. EasyPaisa / JazzCash (PK)" required>
+            </div>
+            <div class="form-group flex-1">
+              <label>Default Currency Tag</label>
+              <input type="text" id="pmCurrency" class="form-input" placeholder="e.g. INR, BDT, USD, NPR">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Primary Account / Number / Address / Link</label>
+            <input type="text" id="pmAccount" class="form-input" placeholder="e.g. UPI ID, Phone Number, Stripe Link, or Crypto Address">
+          </div>
+          <div class="form-group">
+            <label>Account Holder / Payee Name (Optional)</label>
+            <input type="text" id="pmPayee" class="form-input" placeholder="e.g. Store Official / John Doe">
+          </div>
+          <div class="form-group">
+            <label>Instructions & Details for Discord Checkout <span style="color: var(--accent-rose);">*</span></label>
+            <textarea id="pmDetails" class="form-input" rows="3" placeholder="Provide step-by-step payment instructions shown to customer at checkout..." required></textarea>
+          </div>
+          <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+            <input type="checkbox" id="pmEnabled" checked style="width: 18px; height: 18px; cursor: pointer;">
+            <label for="pmEnabled" style="margin-bottom: 0; cursor: pointer; font-weight: 600;">Enable this payment method in Discord checkout</label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('paymentMethodModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSavePaymentMethod">💾 Save Payment Method</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add / Edit API Connection -->
+  <div class="modal-backdrop" id="apiConnectionModal">
+    <div class="modal-box glass-card">
+      <div class="modal-header">
+        <h3 id="apiConnectionModalTitle">🔌 Connect API Provider</h3>
+        <button class="modal-close-btn" onclick="closeModal('apiConnectionModal')">&times;</button>
+      </div>
+      <form id="apiConnectionForm">
+        <input type="hidden" id="apiConnIsEdit" value="false">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Connection ID / Slug <span style="color: var(--accent-rose);">*</span></label>
+              <input type="text" id="apiConnId" class="form-input" placeholder="e.g. main_provider, keyauth_v2" required>
+            </div>
+            <div class="form-group flex-1">
+              <label>Display Name <span style="color: var(--accent-rose);">*</span></label>
+              <input type="text" id="apiConnName" class="form-input" placeholder="e.g. Reseller Key API / SMM Panel" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Provider Type</label>
+              <select id="apiConnType" class="form-input" onchange="updateApiConnFormHints()">
+                <option value="custom_api">🌐 Custom REST API (POST/GET JSON)</option>
+                <option value="smm_panel">📦 Reseller / SMM Panel API (Standard)</option>
+                <option value="keyauth">🔑 KeyAuth Seller API</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label>HTTP Method</label>
+              <select id="apiConnMethod" class="form-input">
+                <option value="POST">POST (Standard)</option>
+                <option value="GET">GET (Query String)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>API Endpoint URL <span style="color: var(--accent-rose);">*</span></label>
+            <input type="url" id="apiConnUrl" class="form-input" placeholder="https://api.provider.com/v2/order" required>
+            <small class="muted" id="apiConnUrlHint">The URL where order and key generation requests are sent.</small>
+          </div>
+
+          <div class="form-group">
+            <label>API Key / Secret Token <span style="color: var(--accent-rose);">*</span></label>
+            <div style="display: flex; gap: 8px;">
+              <input type="password" id="apiConnKey" class="form-input" placeholder="sk_live_... or reseller API key" required style="font-family: var(--font-mono);">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="toggleApiKeyInputVisibility('apiConnKey', this)">👁️</button>
+            </div>
+            <small class="muted">Included automatically as Bearer token, x-api-key header, and key payload parameter.</small>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Key Response Path (Optional)</label>
+              <input type="text" id="apiConnResponsePath" class="form-input" placeholder="e.g. license_key, data.key, code">
+              <small class="muted">Dot-notation path where license key is found in response.</small>
+            </div>
+            <div class="form-group flex-1">
+              <label>Test Variant ID</label>
+              <input type="text" id="apiConnTestVariantId" class="form-input" placeholder="101" value="101">
+              <small class="muted">Sample Variant ID used for test connection check.</small>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Custom Headers JSON (Optional)</label>
+            <textarea id="apiConnHeaders" class="form-input" rows="2" placeholder='{"X-Custom-Client": "WhiteX"}' style="font-family: var(--font-mono);"></textarea>
+          </div>
+
+          <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" id="apiConnEnabled" checked style="width: 18px; height: 18px; cursor: pointer;">
+            <label for="apiConnEnabled" style="margin-bottom: 0; cursor: pointer; font-weight: 600;">Enable this API Connection for live orders</label>
+          </div>
+
+          <!-- Test Output Container -->
+          <div id="apiConnTestResult" class="api-test-output-box" style="display: none;"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('apiConnectionModal')">Cancel</button>
+          <button type="button" class="btn btn-gradient" id="btnTestApiConnection" onclick="runModalApiConnectionTest()">⚡ Test Connection</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveApiConnection">💾 Save Connection</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Product Variant ID Mapping Specific Popup -->
+  <div class="modal-backdrop" id="variantMappingModal">
+    <div class="modal-box glass-card">
+      <div class="modal-header">
+        <h3 id="variantModalTitle">🔌 Configure API & Variant ID Mapping</h3>
+        <button class="modal-close-btn" onclick="closeModal('variantMappingModal')">&times;</button>
+      </div>
+      <form id="variantMappingForm">
+        <input type="hidden" id="vmProductId">
+        <div class="modal-body">
+          <div class="product-mapping-meta-box" id="vmProductMeta">
+            <!-- Injected via JS -->
+          </div>
+
+          <div class="form-group">
+            <label>Connected API Provider</label>
+            <select id="vmApiConnectionId" class="form-input" onchange="renderVariantPlanInputs()">
+              <!-- Dynamic API list -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Delivery Mode</label>
+            <select id="vmDeliveryType" class="form-input">
+              <option value="custom_api">Custom REST API / Reseller Panel (Uses API Key + Variant IDs below)</option>
+              <option value="keyauth">KeyAuth Seller API</option>
+              <option value="stock">Local Stock Pool</option>
+            </select>
+          </div>
+
+          <div class="card" style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-subtle); padding: 14px; border-radius: var(--radius-sm); margin-bottom: 16px;">
+            <h4 style="font-size: 13px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 10px;">📋 Map Each Plan to Provider Variant ID:</h4>
+            <div id="vmPlansContainer" style="display: flex; flex-direction: column; gap: 10px;">
+              <!-- Dynamic inputs for 1d, 7d, 30d, etc. -->
+            </div>
+          </div>
+
+          <!-- Live Simulator Container -->
+          <div id="vmTestResult" class="api-test-output-box" style="display: none;"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('variantMappingModal')">Cancel</button>
+          <button type="button" class="btn btn-gradient" onclick="simulateProductDeliveryTest()">⚡ Test Delivery</button>
+          <button type="submit" class="btn btn-primary">💾 Save Mapping</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add / Edit Currency -->
+  <div class="modal-backdrop" id="currencyModal">
+    <div class="modal-box glass-card" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 id="currencyModalTitle">➕ Add Store Currency</h3>
+        <button class="modal-close-btn" onclick="closeModal('currencyModal')">&times;</button>
+      </div>
+      <form id="currencyForm" onsubmit="handleSaveCurrency(event)">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Currency Code *</label>
+              <input type="text" id="currencyCodeInput" class="form-input" placeholder="e.g. EUR, AED, NPR" maxlength="6" required style="text-transform: uppercase;">
+              <small class="muted">Standard 3-letter currency code</small>
+            </div>
+            <div class="form-group flex-1">
+              <label>Symbol *</label>
+              <input type="text" id="currencySymbolInput" class="form-input" placeholder="e.g. $, €, د.إ, रू" maxlength="8" required>
+              <small class="muted">Display currency symbol</small>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Currency Name *</label>
+              <input type="text" id="currencyNameInput" class="form-input" placeholder="e.g. Euro, UAE Dirham" required>
+            </div>
+            <div class="form-group" style="width: 120px;">
+              <label>Flag Emoji</label>
+              <input type="text" id="currencyFlagInput" class="form-input" placeholder="🇪🇺" maxlength="8">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Exchange Rate vs 1 INR * <span class="muted">(1 INR = X of this currency)</span></label>
+            <input type="number" step="0.000001" min="0.000001" id="currencyRateInput" class="form-input" placeholder="e.g. 0.012 for USD" required>
+            <small class="muted" id="currencyRateHelp">Example: If 1 INR = $0.012 USD, enter 0.012. (₹100 INR = $1.20 USD). If 1 INR = 1.4 BDT, enter 1.4.</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('currencyModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveCurrency">💾 Save Currency</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

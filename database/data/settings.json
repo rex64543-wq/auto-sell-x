@@ -1,0 +1,102 @@
+{
+  "verificationChannelId": "1404713265447047210",
+  "logChannelId": "1560165792195149925",
+  "customerRoleId": "1475429835428859926",
+  "ticketCategoryId": null,
+  "storeName": "White X Store",
+  "mode": "direct",
+  "shopPage": {
+    "title": "",
+    "description": "",
+    "bannerUrl": "",
+    "thumbnailUrl": "https://i.imgur.com/8Qe87dE.png",
+    "color": "#00d2ff",
+    "footer": "White X Store • Select a product below to start • 24/7 Automated Delivery"
+  },
+  "dealPage": {
+    "instructions": "1. Please confirm your order details above.\n2. Tap the **🤝 Make Deal / Pay Now** button below when you are ready to make payment.\n3. The UPI QR Code & Payment options will unlock instantly in this channel!"
+  },
+  "paymentPage": {
+    "upiInstructions": "📱 **GPay / PhonePe / Paytm se niche diya QR Code Scan karke Pay karein!**\nPayment hone ke baad niche **📸 Upload Proof from Gallery** ya UTR button pe click karein.",
+    "cardInstructions": "Pay securely with any Credit or Debit Card (Visa, MasterCard, RuPay, Amex).\nPayment complete hone ke baad UTR / Reference ID submit karein."
+  },
+  "defaultCurrency": "USD",
+  "currencies": [
+    {
+      "code": "USD",
+      "name": "US Dollar",
+      "symbol": "$",
+      "flag": "🇺🇸",
+      "rate": 0.012
+    },
+    {
+      "code": "INR",
+      "name": "Indian Rupee",
+      "symbol": "₹",
+      "flag": "🇮🇳",
+      "rate": 1
+    },
+    {
+      "code": "BDT",
+      "name": "Bangladeshi Taka",
+      "symbol": "৳",
+      "flag": "🇧🇩",
+      "rate": 1.4
+    },
+    {
+      "code": "NPR",
+      "name": "Nepali Rupee",
+      "symbol": "रू",
+      "flag": "🇳🇵",
+      "rate": 1.6
+    }
+  ],
+  "currencyRates": {
+    "USD": 0.012,
+    "INR": 1,
+    "BDT": 1.4,
+    "NPR": 1.6
+  },
+  "paymentMethods": {
+    "upi": {
+      "enabled": true,
+      "name": "UPI / QR Code",
+      "upiId": "milindy783@okaxis",
+      "payeeName": "White X Store",
+      "details": "GPay / PhonePe / Paytm se niche diya QR Code Scan karke Pay karein!\nPayment hone ke baad niche Submit UTR / Upload Proof button pe click karein."
+    },
+    "bkash": {
+      "enabled": true,
+      "name": "bKash / Nagad (BDT)",
+      "number": "01XXXXXXXXX",
+      "details": "🇧🇩 **bKash / Nagad (Personal)**: `01XXXXXXXXX` (Send Money)\nPayment complete hone ke baad TrxID / Screenshot submit karein."
+    },
+    "credit": {
+      "enabled": true,
+      "name": "Credit / Debit Card",
+      "paymentLink": "https://buy.stripe.com/card_checkout",
+      "details": "Pay securely with any Credit or Debit Card (Visa, MasterCard, RuPay, Amex).\nPayment complete hone ke baad UTR / Reference ID submit karein."
+    },
+    "crypto": {
+      "enabled": true,
+      "name": "Cryptocurrency",
+      "details": "USDT (TRC20): TYourWalletAddressHere\nLTC: LYourLtcAddressHere\nBTC: bc1YourBtcAddressHere"
+    },
+    "paypal": {
+      "enabled": true,
+      "name": "PayPal",
+      "details": "PayPal: https://paypal.me/yourusername\nPlease send as Friends & Family only!"
+    }
+  },
+  "apiConnections": {},
+  "lastCatalogMessageId": "1560203438556581969",
+  "shopChannelId": "1560165792195149925",
+  "adminRoleId": "1560202699306303488",
+  "ownerId": null,
+  "adminAuth": {
+    "username": "admin",
+    "salt": "f000be2647322c1ab3f27f3a7eb4351c",
+    "passwordHash": "f7a67f416116af8a191c08db927b41ccf0b128df22c8ce7881d92888eca0ae74969ffb1903db7e65d02604bb1076b93fa10c6fbc611640d8915447e4f93ce93f",
+    "updatedAt": "2026-10-15T08:22:14.786Z"
+  }
+}
