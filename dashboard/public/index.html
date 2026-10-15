@@ -474,7 +474,7 @@
                   <h3>💳 Payment Methods & Gateways</h3>
                   <small class="muted">Add, delete, edit, or toggle payment methods active in the Discord store checkout</small>
                 </div>
-                <button type="button" class="btn btn-primary btn-sm" id="btnAddNewPaymentMethod">
+                <button type="button" class="btn btn-primary btn-sm" id="btnAddNewPaymentMethod" onclick="openNewPaymentMethodModal()">
                   <span class="btn-icon">➕</span> Add Payment Method
                 </button>
               </div>
@@ -1268,6 +1268,131 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" onclick="closeModal('currencyModal')">Cancel</button>
           <button type="submit" class="btn btn-primary" id="btnSaveCurrency">💾 Save Currency</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Payment Method Add / Edit & QR Code Manager -->
+  <div class="modal-backdrop" id="paymentMethodModal" style="display: none;">
+    <div class="modal-box glass-card" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 24px;">💳</span>
+          <div>
+            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #fff;" id="pmModalTitle">Add / Edit Payment Method</h3>
+            <small class="muted">Configure checkout gateways, UPI details, and custom QR codes</small>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('paymentMethodModal')">&times;</button>
+      </div>
+
+      <form id="paymentMethodForm" onsubmit="savePaymentMethodForm(event)">
+        <input type="hidden" id="pmIsEdit" value="false">
+
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+          <!-- Row 1: Key & Name -->
+          <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 12px;">
+            <div class="form-group" style="margin: 0;">
+              <label for="pmKey">Method Identifier <span style="color: var(--accent-rose);">*</span></label>
+              <input type="text" id="pmKey" class="form-input" placeholder="e.g. upi, gpay, binance" required>
+              <small class="muted" style="font-size: 10px;">Unique ID (lowercase, no spaces)</small>
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label for="pmName">Display Name <span style="color: var(--accent-rose);">*</span></label>
+              <input type="text" id="pmName" class="form-input" placeholder="e.g. Google Pay / PhonePe QR" required>
+            </div>
+          </div>
+
+          <!-- Row 2: Emoji & Currency -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group" style="margin: 0;">
+              <label for="pmEmoji">Emoji Icon</label>
+              <input type="text" id="pmEmoji" class="form-input" placeholder="📱, 💳, 🪙, 🅿️, 🇧🇩" value="💳">
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label for="pmCurrency">Settlement Currency</label>
+              <select id="pmCurrency" class="form-input">
+                <option value="INR">INR (₹ Indian Rupee)</option>
+                <option value="USD">USD ($ US Dollar)</option>
+                <option value="BDT">BDT (৳ Bangladeshi Taka)</option>
+                <option value="PKR">PKR (Rs Pakistani Rupee)</option>
+                <option value="EUR">EUR (€ Euro)</option>
+                <option value="GBP">GBP (£ British Pound)</option>
+                <option value="USDT">USDT (Crypto TRC20/BEP20)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Row 3: Account Number / UPI ID & Payee Name -->
+          <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 12px;">
+            <div class="form-group" style="margin: 0;">
+              <label for="pmAccount">Account ID / UPI ID / Wallet Address</label>
+              <input type="text" id="pmAccount" class="form-input" placeholder="e.g. store@upi or wallet address">
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label for="pmPayee">Payee Name</label>
+              <input type="text" id="pmPayee" class="form-input" placeholder="e.g. White X Official">
+            </div>
+          </div>
+
+          <!-- Row 4: Instructions -->
+          <div class="form-group" style="margin: 0;">
+            <label for="pmDetails">Customer Instructions</label>
+            <textarea id="pmDetails" class="form-input" rows="2" placeholder="e.g. Scan QR Code or send money to UPI ID, then upload screenshot for verification."></textarea>
+          </div>
+
+          <!-- Row 5: 📷 QR Code Option Section -->
+          <div class="pm-qr-section" style="background: rgba(0, 229, 255, 0.05); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: var(--radius-sm); padding: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 20px;">📷</span>
+                <div>
+                  <strong style="color: #fff; font-size: 13px;">QR Code Add Option</strong>
+                  <div class="muted" style="font-size: 11px;">Upload or paste an image URL to show a payment QR directly in Discord checkout!</div>
+                </div>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('pmQrFileInput').click()" style="display: flex; align-items: center; gap: 6px;">
+                <span>📁 Upload Image</span>
+              </button>
+              <input type="file" id="pmQrFileInput" accept="image/*" style="display: none;" onchange="handleQrFileUpload(event)">
+            </div>
+
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+              <input type="text" id="pmQrCode" class="form-input" placeholder="Paste QR Image URL (e.g. https://... or /uploads/...) or upload file" oninput="updateQrPreview(this.value)">
+              <button type="button" class="btn btn-secondary btn-sm" id="btnRemoveQr" onclick="clearQrCode()" style="white-space: nowrap;">
+                ❌ Remove
+              </button>
+            </div>
+
+            <!-- Live QR Preview Card -->
+            <div id="pmQrPreviewContainer" style="display: none; align-items: center; gap: 14px; background: rgba(0, 0, 0, 0.35); border: 1px dashed rgba(0, 229, 255, 0.3); border-radius: var(--radius-sm); padding: 10px;">
+              <img id="pmQrPreviewImg" src="" alt="QR Code Preview" style="max-height: 120px; max-width: 120px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: #fff; padding: 4px; object-fit: contain;">
+              <div>
+                <span class="badge badge-safe" style="font-size: 11px; margin-bottom: 4px; display: inline-block;">✅ QR Code Active</span>
+                <p class="muted" style="margin: 0; font-size: 11px;">This QR code will be embedded in Discord when customers choose this payment option.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 6: Active Toggle -->
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(255,255,255,0.03); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+            <div>
+              <strong style="color: #fff; font-size: 13px;">Enable in Discord Store</strong>
+              <div class="muted" style="font-size: 11px;">When enabled, customers can select this method in /shop checkout & wallet top-up.</div>
+            </div>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="pmEnabled" checked style="width: 18px; height: 18px; cursor: pointer;">
+              <span style="font-size: 13px; font-weight: 600;">Active</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('paymentMethodModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSavePaymentMethod">
+            <span class="btn-icon">💾</span> Save Payment Method
+          </button>
         </div>
       </form>
     </div>

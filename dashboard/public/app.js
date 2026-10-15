@@ -1182,6 +1182,7 @@ function renderPaymentMethodsList(methods) {
     const currency = m.currency || 'INR';
     const account = m.number || m.upiId || m.paymentLink || '';
     const details = m.details || m.instructions || 'No special instructions configured.';
+    const qrCode = m.qrCodeUrl || m.qrCode || '';
 
     return `
       <div class="pm-item-card ${isEnabled ? '' : 'is-disabled'}" id="pm-card-${key}">
@@ -1197,8 +1198,22 @@ function renderPaymentMethodsList(methods) {
         </div>
 
         <div class="pm-card-body">
-          ${account ? `<div style="font-weight: 600; color: #fff; margin-bottom: 4px;">Account: <code>${escapeHtml(account)}</code></div>` : ''}
-          <div>${escapeHtml(details)}</div>
+          ${account ? `<div style="font-weight: 600; color: #fff; margin-bottom: 6px;">Account: <code>${escapeHtml(account)}</code></div>` : ''}
+          <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">${escapeHtml(details)}</div>
+
+          ${qrCode ? `
+            <div class="pm-qr-preview-badge" style="display: flex; align-items: center; gap: 10px; background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 6px; padding: 6px 10px; margin-top: 6px;">
+              <img src="${escapeHtml(qrCode)}" alt="QR" style="width: 38px; height: 38px; object-fit: contain; background: #fff; border-radius: 4px; padding: 2px; cursor: pointer;" onclick="window.open('${escapeHtml(qrCode)}', '_blank')">
+              <div>
+                <span style="font-size: 11px; font-weight: 700; color: #00e5ff; display: block;">📷 QR Code Attached</span>
+                <small class="muted" style="font-size: 10px;">Embedded in Discord Checkout</small>
+              </div>
+            </div>
+          ` : `
+            <div style="font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 4px;">
+              <span>No custom QR code (Using text instructions)</span>
+            </div>
+          `}
         </div>
 
         <div class="pm-card-footer">
@@ -1207,7 +1222,7 @@ function renderPaymentMethodsList(methods) {
             <span>${isEnabled ? 'Active in Store' : 'Disabled'}</span>
           </label>
           <div class="pm-actions-group">
-            <button class="btn btn-secondary btn-sm" onclick="openEditPaymentMethodModal('${key}')" title="Edit details">
+            <button class="btn btn-secondary btn-sm" onclick="openEditPaymentMethodModal('${key}')" title="Edit details & QR Code">
               ✏️ Edit
             </button>
             <button class="btn btn-danger btn-sm" onclick="deletePaymentMethod('${key}', '${escapeHtml(name)}')" title="Delete payment method">
@@ -1218,6 +1233,72 @@ function renderPaymentMethodsList(methods) {
       </div>
     `;
   }).join('');
+}
+
+function updateQrPreview(url) {
+  const container = document.getElementById('pmQrPreviewContainer');
+  const img = document.getElementById('pmQrPreviewImg');
+  if (!container || !img) return;
+  const clean = (url || '').trim();
+  if (clean) {
+    img.src = clean;
+    container.style.display = 'flex';
+  } else {
+    img.src = '';
+    container.style.display = 'none';
+  }
+}
+
+function clearQrCode() {
+  const input = document.getElementById('pmQrCode');
+  const fileInput = document.getElementById('pmQrFileInput');
+  if (input) input.value = '';
+  if (fileInput) fileInput.value = '';
+  updateQrPreview('');
+}
+
+async function handleQrFileUpload(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    showToast('Please select a valid image file (PNG, JPG, WEBP)', 'error');
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('Image file too large (Max 5MB)', 'error');
+    return;
+  }
+
+  showToast('Processing QR code image...', 'info');
+
+  const reader = new FileReader();
+  reader.onload = async (evt) => {
+    const base64Data = evt.target.result;
+    try {
+      const res = await fetch('/api/upload-qr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64Data, filename: file.name })
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        document.getElementById('pmQrCode').value = data.url;
+        updateQrPreview(data.url);
+        showToast('QR Code uploaded and attached successfully!', 'success');
+      } else {
+        document.getElementById('pmQrCode').value = base64Data;
+        updateQrPreview(base64Data);
+        showToast('QR Code loaded as image preview!', 'success');
+      }
+    } catch (err) {
+      document.getElementById('pmQrCode').value = base64Data;
+      updateQrPreview(base64Data);
+      showToast('QR Code loaded as image preview!', 'info');
+    }
+  };
+  reader.readAsDataURL(file);
 }
 
 function openNewPaymentMethodModal() {
@@ -1231,6 +1312,8 @@ function openNewPaymentMethodModal() {
   document.getElementById('pmAccount').value = '';
   document.getElementById('pmPayee').value = '';
   document.getElementById('pmDetails').value = '';
+  document.getElementById('pmQrCode').value = '';
+  updateQrPreview('');
   document.getElementById('pmEnabled').checked = true;
   openModal('paymentMethodModal');
 }
@@ -1250,6 +1333,9 @@ function openEditPaymentMethodModal(key) {
   document.getElementById('pmAccount').value = m.number || m.upiId || m.paymentLink || '';
   document.getElementById('pmPayee').value = m.payeeName || '';
   document.getElementById('pmDetails').value = m.details || m.instructions || '';
+  const qr = m.qrCodeUrl || m.qrCode || '';
+  document.getElementById('pmQrCode').value = qr;
+  updateQrPreview(qr);
   document.getElementById('pmEnabled').checked = m.enabled !== false;
   openModal('paymentMethodModal');
 }
@@ -1264,6 +1350,7 @@ async function savePaymentMethodForm(e) {
   const account = document.getElementById('pmAccount').value.trim();
   const payeeName = document.getElementById('pmPayee').value.trim();
   const details = document.getElementById('pmDetails').value.trim();
+  const qrCodeUrl = document.getElementById('pmQrCode').value.trim();
   const enabled = document.getElementById('pmEnabled').checked;
 
   if (!key || !name) {
@@ -1278,6 +1365,7 @@ async function savePaymentMethodForm(e) {
     currency,
     details,
     payeeName,
+    qrCodeUrl: qrCodeUrl || undefined,
     enabled
   };
 
@@ -1351,6 +1439,10 @@ window.openNewPaymentMethodModal = openNewPaymentMethodModal;
 window.openEditPaymentMethodModal = openEditPaymentMethodModal;
 window.deletePaymentMethod = deletePaymentMethod;
 window.togglePaymentMethod = togglePaymentMethod;
+window.savePaymentMethodForm = savePaymentMethodForm;
+window.updateQrPreview = updateQrPreview;
+window.clearQrCode = clearQrCode;
+window.handleQrFileUpload = handleQrFileUpload;
 
 function updateBannerPreview(url) {
   const img = document.getElementById('bannerPreviewImg');

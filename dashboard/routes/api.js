@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
 const db = require('../../database/db');
 const adminVerifyFlow = require('../../handlers/adminVerifyFlow');
 const licenseService = require('../../services/licenseService');
@@ -478,14 +480,52 @@ module.exports = function (client) {
     }
   });
 
-  // 6B. Payment Methods Management Endpoints (Add, Edit, Delete, Toggle)
+  // 6B. Payment Methods Management Endpoints (Add, Edit, Delete, Toggle, QR Upload)
   router.get('/payment-methods', (req, res) => {
     res.json(db.getPaymentMethods());
   });
 
+  // Upload QR code image directly to public/uploads/
+  router.post('/upload-qr', (req, res) => {
+    try {
+      const { imageBase64, filename } = req.body;
+      if (!imageBase64) {
+        return res.status(400).json({ error: 'Image data (base64) is required' });
+      }
+
+      const matches = imageBase64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      let buffer;
+      let ext = 'png';
+
+      if (matches && matches.length === 3) {
+        const mime = matches[1];
+        if (mime.includes('jpeg') || mime.includes('jpg')) ext = 'jpg';
+        else if (mime.includes('webp')) ext = 'webp';
+        buffer = Buffer.from(matches[2], 'base64');
+      } else {
+        buffer = Buffer.from(imageBase64, 'base64');
+      }
+
+      const uploadsDir = path.join(__dirname, '..', 'public', 'uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      const safeName = `qr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
+      const filePath = path.join(uploadsDir, safeName);
+      fs.writeFileSync(filePath, buffer);
+
+      const publicUrl = `/uploads/${safeName}`;
+      res.json({ success: true, url: publicUrl, filename: safeName });
+    } catch (err) {
+      console.error('QR upload error:', err);
+      res.status(500).json({ error: 'Failed to save QR code image: ' + err.message });
+    }
+  });
+
   router.post('/payment-methods', (req, res) => {
     try {
-      const { key, name, emoji, currency, details, upiId, payeeName, number, paymentLink, enabled } = req.body;
+      const { key, name, emoji, currency, details, upiId, payeeName, number, paymentLink, qrCodeUrl, qrCode, enabled } = req.body;
       if (!name) return res.status(400).json({ error: 'Payment method name is required' });
 
       const methodKey = (key || name).toLowerCase().replace(/[^a-z0-9_-]/g, '_');
@@ -498,6 +538,7 @@ module.exports = function (client) {
         payeeName: payeeName || undefined,
         number: number || undefined,
         paymentLink: paymentLink || undefined,
+        qrCodeUrl: qrCodeUrl || qrCode || undefined,
         enabled: enabled !== false
       });
 

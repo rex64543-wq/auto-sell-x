@@ -415,7 +415,8 @@ class PurchaseFlow {
         payeeName
       )}&am=${order.amount}&cu=INR&tn=Order-${order.id}`;
 
-      const qrCodeApi = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(
+      const customQr = upiConfig.qrCodeUrl || upiConfig.qrCode;
+      const qrCodeApi = customQr || `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(
         upiUrl
       )}`;
 
@@ -528,8 +529,13 @@ class PurchaseFlow {
           `📋 **Payment Instructions:**\n` +
           `\`\`\`\n${details}\n\`\`\`\n` +
           `📌 *Payment complete hone ke baad **✍️ Submit Payment Proof** pe click karein ya **📸 Upload Proof** se screenshot bhejein!*`
-        )
-        .setFooter({ text: `Order #${order.id} | Selected: ${conv.currency} | ${methodName} Gateway` });
+        );
+
+      if (customConfig.qrCodeUrl || customConfig.qrCode) {
+        embed.setImage(customConfig.qrCodeUrl || customConfig.qrCode);
+      }
+
+      embed.setFooter({ text: `Order #${order.id} | Selected: ${conv.currency} | ${methodName} Gateway` });
     }
 
     return { embed, currencyRow, toggleRow, actionRow };

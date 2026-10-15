@@ -1766,3 +1766,133 @@ body::after {
   40%, 80% { transform: translateX(6px); }
 }
 
+/* ==========================================
+   Payment Methods & QR Code Styling
+   ========================================== */
+.pm-cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.pm-item-card {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+}
+
+.pm-item-card:hover {
+  border-color: rgba(0, 229, 255, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 229, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+.pm-item-card.is-disabled {
+  opacity: 0.6;
+  border-color: rgba(255, 255, 255, 0.04);
+  background: rgba(10, 15, 28, 0.5);
+}
+
+.pm-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.pm-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pm-emoji-badge {
+  font-size: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pm-name-box h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.pm-key-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pm-card-body {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-main);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+
+.pm-card-body code {
+  color: #a5f3fc;
+  font-size: 12px;
+}
+
+.pm-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 8px;
+}
+
+.pm-toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.pm-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pm-qr-section {
+  transition: all 0.2s ease;
+}
+
+.pm-qr-preview-badge img {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s ease;
+}
+
+.pm-qr-preview-badge img:hover {
+  transform: scale(1.15);
+}
+
+
