@@ -72,7 +72,21 @@ class InteractionHandler {
       }
     }
 
-    await command.execute(interaction);
+    try {
+      console.log(`[SlashCommand] Executing /${cmdName} ${subCmd || ''} for ${interaction.user?.tag || interaction.user?.id}...`);
+      await command.execute(interaction);
+      console.log(`[SlashCommand] Successfully completed /${cmdName}`);
+    } catch (cmdErr) {
+      console.error(`[SlashCommand] Error executing /${cmdName}:`, cmdErr);
+      const errMsg = `❌ Error executing \`/${cmdName}\`: ${cmdErr.message}`;
+      try {
+        if (interaction.deferred || interaction.replied) {
+          await interaction.followUp({ content: errMsg, ephemeral: true });
+        } else {
+          await interaction.reply({ content: errMsg, ephemeral: true });
+        }
+      } catch (_) {}
+    }
   }
 
   async handleSelectMenu(interaction) {

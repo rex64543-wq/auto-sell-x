@@ -77,25 +77,32 @@ const { startDashboard } = require('./dashboard/server');
 // Start Web Dashboard immediately on launch so cloud platforms detect the open port instantly
 startDashboard(client);
 
-client.once('clientReady', async () => {
+const handleReady = (readyClient) => {
+  const botUser = readyClient?.user || client.user;
   console.log('=============================================');
-  console.log(`🤖 Logged in as: ${client.user.tag}`);
+  console.log(`🤖 Logged in as: ${botUser?.tag || 'Discord Bot'}`);
   console.log(`🌐 Serving in ${client.guilds.cache.size} server(s)`);
   console.log('=============================================');
 
-  client.user.setPresence({
-    activities: [{ name: '🛒 Store | /help', type: ActivityType.Watching }],
-    status: 'online'
-  });
+  if (client.user) {
+    client.user.setPresence({
+      activities: [{ name: '🛒 Store | /help', type: ActivityType.Watching }],
+      status: 'online'
+    });
+  }
 
-  // Auto-deploy commands on launch
-  await deployCommands();
-});
+  // Non-blocking auto-deploy commands on launch
+  deployCommands().catch(err => console.error('Command registration error:', err));
+};
+
+client.once('clientReady', handleReady);
+client.once('ready', handleReady);
 
 const db = require('./database/db');
 const purchaseFlow = require('./handlers/purchaseFlow');
 
 client.on('interactionCreate', async interaction => {
+  console.log(`⚡ [Discord Event] Interaction received: ${interaction.type} | Command: /${interaction.commandName || interaction.customId || 'unknown'} by ${interaction.user?.tag}`);
   await interactionHandler.handleInteraction(interaction);
 });
 
@@ -186,7 +193,9 @@ process.on('uncaughtException', error => {
   console.error('Uncaught exception:', error);
 });
 
-const token = process.env.DISCORD_TOKEN;
+const rawToken = process.env.DISCORD_TOKEN;
+const token = rawToken ? rawToken.trim().replace(/^["']|["']$/g, '') : null;
+
 if (!token || token === 'YOUR_BOT_TOKEN_HERE') {
   console.log('================================================================');
   console.log('⚠️  DISCORD_TOKEN is NOT set in Render Environment Variables!');
@@ -195,10 +204,10 @@ if (!token || token === 'YOUR_BOT_TOKEN_HERE') {
   console.log('   Value: [Your Discord Bot Token]');
   console.log('================================================================');
 } else {
-  console.log('🤖 Attempting Discord Gateway login with DISCORD_TOKEN...');
+  console.log(`🤖 Attempting Discord Gateway login (token length: ${token.length})...`);
   client.login(token).then(() => {
-    console.log('✅ Bot connected to Discord Gateway successfully!');
+    console.log('✅ client.login resolved: Bot connected to Discord Gateway successfully!');
   }).catch(err => {
-    console.error('❌ Failed to log in to Discord:', err.message);
+    console.error('❌ Failed to log in to Discord:', err);
   });
 }
