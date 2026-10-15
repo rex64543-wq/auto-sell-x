@@ -24,6 +24,20 @@ module.exports = function (client) {
     }
   });
 
+  // Health and bot connection status endpoint
+  router.get('/health', (req, res) => {
+    const isReady = client?.isReady?.() || false;
+    res.json({
+      status: 'ok',
+      botReady: isReady,
+      botTag: client?.user?.tag || null,
+      botId: client?.user?.id || null,
+      guildCount: client?.guilds?.cache?.size || 0,
+      wsStatus: client?.ws?.status ?? -1,
+      timestamp: new Date().toISOString()
+    });
+  });
+
   // Admin login with credentials & CAPTCHA validation
   router.post('/auth/login', (req, res) => {
     const ip = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
