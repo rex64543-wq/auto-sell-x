@@ -474,12 +474,18 @@ class Database {
     return this.wallets;
   }
 
+  reloadRedeemCodes() {
+    this.redeemCodes = loadJson('redeem_codes.json', {});
+    return this.redeemCodes;
+  }
+
   reloadAll() {
     this.reloadProducts();
     this.reloadSettings();
     this.reloadStock();
     this.reloadOrders();
     this.reloadWallets();
+    this.reloadRedeemCodes();
   }
 
   // --- Products ---
@@ -1236,6 +1242,226 @@ class Database {
   getWalletHistory(userId) {
     this.reloadWallets();
     return this.wallets[userId]?.history || [];
+  }
+
+  // --- Redeem / Gift Codes System ---
+  getAllRedeemCodes() {
+    this.reloadRedeemCodes();
+    return Object.values(this.redeemCodes).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
+
+  getRedeemCode(code) {
+    if (!code) return null;
+    this.reloadRedeemCodes();
+    return this.redeemCodes[code.toUpperCase().trim()] || null;
+  }
+
+  generateCodeString(prefix = 'WX') {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const randPart = (len) => {
+      let res = '';
+      for (let i = 0; i < len; i++) {
+        res += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return res;
+    };
+    const cleanPrefix = (prefix || 'WX').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    return `${cleanPrefix}-${randPart(4)}-${randPart(4)}-${randPart(4)}`;
+  }
+
+  saveRedeemCode(codeData) {
+    this.reloadRedeemCodes();
+    const cleanCode = (codeData.code || '').toUpperCase().trim();
+    if (!cleanCode) return null;
+    this.redeemCodes[cleanCode] = {
+      ...(this.redeemCodes[cleanCode] || {}),
+      ...codeData,
+      code: cleanCode
+    };
+    saveJson('redeem_codes.json', this.redeemCodes);
+    return this.redeemCodes[cleanCode];
+  }
+
+  createRedeemCode(params = {}) {
+    this.reloadRedeemCodes();
+    const codeStr = (params.code && params.code.trim())
+      ? params.code.toUpperCase().trim()
+      : this.generateCodeString(params.prefix || 'WX');
+
+    const type = params.type === 'wallet' ? 'wallet' : 'item';
+    let productName = params.productName || null;
+    let planDuration = params.planDuration || null;
+    let amount = Number(params.amount || 0);
+
+    if (type === 'item' && params.productId) {
+      const prod = this.getProduct(params.productId);
+      if (prod) {
+        productName = prod.name;
+        if (params.planKey && prod.plans && prod.plans[params.planKey]) {
+          const plan = prod.plans[params.planKey];
+          planDuration = plan.label || `${plan.durationDays} Days`;
+          amount = Number(plan.price || 0);
+        }
+      }
+    }
+
+    const newCode = {
+      code: codeStr,
+      type,
+      productId: params.productId || null,
+      productName: productName || (type === 'wallet' ? 'Wallet Credit' : 'Store Item'),
+      planKey: params.planKey || '30d',
+      planDuration: planDuration || (type === 'wallet' ? null : '30 Days'),
+      amount,
+      currency: params.currency || '₹',
+      maxUses: params.maxUses !== undefined ? Number(params.maxUses) : 1,
+      usedCount: 0,
+      isActive: params.isActive !== false,
+      expiresAt: params.expiresAt || null,
+      createdBy: params.createdBy || 'Staff',
+      note: params.note || '',
+      createdAt: new Date().toISOString(),
+      claimedBy: []
+    };
+
+    this.redeemCodes[codeStr] = newCode;
+    saveJson('redeem_codes.json', this.redeemCodes);
+    return newCode;
+  }
+
+  bulkCreateRedeemCodes(items = []) {
+    this.reloadRedeemCodes();
+    const created = [];
+    for (const item of items) {
+      const codeStr = (item.code && item.code.trim())
+        ? item.code.toUpperCase().trim()
+        : this.generateCodeString(item.prefix || 'WX');
+
+      const type = item.type === 'wallet' ? 'wallet' : 'item';
+      let productName = item.productName || null;
+      let planDuration = item.planDuration || null;
+      let amount = Number(item.amount || 0);
+
+      if (type === 'item' && item.productId) {
+        const prod = this.getProduct(item.productId);
+        if (prod) {
+          productName = prod.name;
+          if (item.planKey && prod.plans && prod.plans[item.planKey]) {
+            const plan = prod.plans[item.planKey];
+            planDuration = plan.label || `${plan.durationDays} Days`;
+            amount = Number(plan.price || 0);
+          }
+        }
+      }
+
+      const newCode = {
+        code: codeStr,
+        type,
+        productId: item.productId || null,
+        productName: productName || (type === 'wallet' ? 'Wallet Credit' : 'Store Item'),
+        planKey: item.planKey || '30d',
+        planDuration: planDuration || (type === 'wallet' ? null : '30 Days'),
+        amount,
+        currency: item.currency || '₹',
+        maxUses: item.maxUses !== undefined ? Number(item.maxUses) : 1,
+        usedCount: 0,
+        isActive: item.isActive !== false,
+        expiresAt: item.expiresAt || null,
+        createdBy: item.createdBy || 'Staff',
+        note: item.note || '',
+        createdAt: new Date().toISOString(),
+        claimedBy: []
+      };
+
+      this.redeemCodes[codeStr] = newCode;
+      created.push(newCode);
+    }
+
+    saveJson('redeem_codes.json', this.redeemCodes);
+    return created;
+  }
+
+  deleteRedeemCode(code) {
+    if (!code) return false;
+    this.reloadRedeemCodes();
+    const cleanCode = code.toUpperCase().trim();
+    if (this.redeemCodes[cleanCode]) {
+      delete this.redeemCodes[cleanCode];
+      saveJson('redeem_codes.json', this.redeemCodes);
+      return true;
+    }
+    return false;
+  }
+
+  toggleRedeemCodeStatus(code) {
+    if (!code) return null;
+    this.reloadRedeemCodes();
+    const cleanCode = code.toUpperCase().trim();
+    if (this.redeemCodes[cleanCode]) {
+      this.redeemCodes[cleanCode].isActive = !this.redeemCodes[cleanCode].isActive;
+      saveJson('redeem_codes.json', this.redeemCodes);
+      return this.redeemCodes[cleanCode];
+    }
+    return null;
+  }
+
+  claimRedeemCode(codeStr, user) {
+    this.reloadRedeemCodes();
+    if (!codeStr) return { success: false, reason: 'Please provide a valid redeem code.' };
+    const cleanCode = codeStr.toUpperCase().trim();
+    const code = this.redeemCodes[cleanCode];
+    if (!code) {
+      return { success: false, reason: 'Invalid or unknown redeem code. Please verify the code and try again.' };
+    }
+    if (code.isActive === false) {
+      return { success: false, reason: 'This redeem code has been disabled by the store staff.' };
+    }
+    if (code.expiresAt) {
+      const exp = new Date(code.expiresAt);
+      if (!isNaN(exp.getTime()) && exp.getTime() < Date.now()) {
+        return { success: false, reason: `This redeem code has expired on ${exp.toLocaleDateString()}.` };
+      }
+    }
+    const maxUses = Number(code.maxUses || 1);
+    const usedCount = Number(code.usedCount || 0);
+    if (maxUses > 0 && usedCount >= maxUses) {
+      return { success: false, reason: 'This redeem code has already reached its maximum claim limit!' };
+    }
+    if (!Array.isArray(code.claimedBy)) {
+      code.claimedBy = [];
+    }
+    const alreadyClaimed = code.claimedBy.some(c => c.userId === user.id);
+    if (alreadyClaimed) {
+      return { success: false, reason: 'You have already claimed this redeem code!' };
+    }
+
+    code.usedCount = usedCount + 1;
+    const claimRecord = {
+      userId: user.id,
+      username: user.tag || user.username || 'User',
+      claimedAt: new Date().toISOString(),
+      deliveredKey: null
+    };
+    code.claimedBy.push(claimRecord);
+    this.saveRedeemCode(code);
+
+    return {
+      success: true,
+      codeData: code,
+      claimRecord
+    };
+  }
+
+  recordClaimKey(codeStr, userId, deliveredKey) {
+    this.reloadRedeemCodes();
+    const cleanCode = (codeStr || '').toUpperCase().trim();
+    const code = this.redeemCodes[cleanCode];
+    if (!code || !Array.isArray(code.claimedBy)) return;
+    const record = code.claimedBy.slice().reverse().find(c => c.userId === userId);
+    if (record) {
+      record.deliveredKey = deliveredKey;
+      this.saveRedeemCode(code);
+    }
   }
 }
 

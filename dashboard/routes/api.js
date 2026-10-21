@@ -982,5 +982,148 @@ module.exports = function (client) {
     }
   });
 
+  // ------------------------------------------
+  // 12. REDEEM / GIFT CODES MANAGEMENT
+  // ------------------------------------------
+
+  // List all redeem codes & statistics
+  router.get('/redeem-codes', (req, res) => {
+    try {
+      const codes = db.getAllRedeemCodes();
+      let totalClaimed = 0;
+      let totalValue = 0;
+      let activeCount = 0;
+
+      for (const c of codes) {
+        totalClaimed += Number(c.usedCount || 0);
+        totalValue += (Number(c.amount || 0) * Number(c.usedCount || 0));
+        const isExp = c.expiresAt && new Date(c.expiresAt).getTime() < Date.now();
+        const isFull = c.maxUses > 0 && c.usedCount >= c.maxUses;
+        if (c.isActive !== false && !isExp && !isFull) {
+          activeCount++;
+        }
+      }
+
+      res.json({
+        codes,
+        stats: {
+          total: codes.length,
+          active: activeCount,
+          totalClaimed,
+          totalValue
+        }
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Generate single redeem code
+  router.post('/redeem-codes', (req, res) => {
+    try {
+      const {
+        code,
+        prefix,
+        type,
+        productId,
+        planKey,
+        amount,
+        maxUses,
+        expiresAt,
+        note
+      } = req.body;
+
+      if (type === 'item' && !productId) {
+        return res.status(400).json({ error: 'Please select a product for item redeem codes.' });
+      }
+
+      if (type === 'wallet' && (!amount || Number(amount) <= 0)) {
+        return res.status(400).json({ error: 'Please enter a valid wallet balance amount.' });
+      }
+
+      const created = db.createRedeemCode({
+        code: code?.trim() || null,
+        prefix: prefix?.trim() || 'WX',
+        type: type || 'item',
+        productId: productId || null,
+        planKey: planKey || '30d',
+        amount: Number(amount) || 0,
+        maxUses: maxUses !== undefined && maxUses !== '' ? Number(maxUses) : 1,
+        expiresAt: expiresAt || null,
+        note: note || '',
+        createdBy: 'Web Dashboard Admin'
+      });
+
+      res.json({ success: true, code: created });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Bulk generate redeem codes
+  router.post('/redeem-codes/bulk', (req, res) => {
+    try {
+      const {
+        count = 5,
+        prefix = 'GIFT',
+        type = 'item',
+        productId,
+        planKey,
+        amount,
+        maxUses = 1,
+        expiresAt,
+        note
+      } = req.body;
+
+      const numCount = Math.min(Math.max(1, parseInt(count, 10) || 5), 50);
+
+      const items = [];
+      for (let i = 0; i < numCount; i++) {
+        items.push({
+          prefix: prefix?.trim() || 'GIFT',
+          type,
+          productId,
+          planKey,
+          amount: Number(amount) || 0,
+          maxUses: Number(maxUses) || 1,
+          expiresAt: expiresAt || null,
+          note: note || `Bulk Generated Batch (${numCount}x)`,
+          createdBy: 'Web Dashboard Admin'
+        });
+      }
+
+      const created = db.bulkCreateRedeemCodes(items);
+      res.json({ success: true, count: created.length, codes: created });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Delete / Revoke redeem code
+  router.delete('/redeem-codes/:code', (req, res) => {
+    try {
+      const success = db.deleteRedeemCode(req.params.code);
+      if (!success) {
+        return res.status(404).json({ error: 'Redeem code not found.' });
+      }
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Toggle active/inactive status
+  router.patch('/redeem-codes/:code/toggle', (req, res) => {
+    try {
+      const updated = db.toggleRedeemCodeStatus(req.params.code);
+      if (!updated) {
+        return res.status(404).json({ error: 'Redeem code not found.' });
+      }
+      res.json({ success: true, code: updated });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   return router;
 };

@@ -552,7 +552,8 @@ function switchTab(tabName) {
     apiconnect: { title: '🔌 API Key Connections & Variant Mapping', sub: 'Connect external reseller APIs using API Keys and map Product Variant IDs for automated 0-second delivery.' },
     broadcast: { title: 'Discord Store Deploy', sub: 'Deploy or refresh the store catalog into your Discord server channel.' },
     'discord-designer': { title: '🎨 Discord Bot Embed Designer', sub: 'Easily edit Discord bot embeds, ASCII frames, colors, instructions & preview live in Discord Dark Mode.' },
-    'website-editor': { title: '🎨 Website Storefront Editor & Live CMS', sub: 'Customize public website branding, announcement marquee, hero showcase, features, reviews, and FAQs in real time.' }
+    'website-editor': { title: '🎨 Website Storefront Editor & Live CMS', sub: 'Customize public website branding, announcement marquee, hero showcase, features, reviews, and FAQs in real time.' },
+    'redeem-codes': { title: '🎁 Redeem Codes & Gift Engine', sub: 'Generate single or bulk promotional codes for cheats and wallet credits claimed via /claim in Discord.' }
   };
 
   if (titles[tabName]) {
@@ -566,6 +567,10 @@ function switchTab(tabName) {
 
   if (tabName === 'website-editor') {
     loadWebsiteEditorData();
+  }
+
+  if (tabName === 'redeem-codes') {
+    loadRedeemCodes();
   }
 }
 
@@ -3387,5 +3392,460 @@ window.setDesignerColor = setDesignerColor;
 window.insertDesignerSnippet = insertDesignerSnippet;
 window.saveDiscordDesignerData = saveDiscordDesignerData;
 window.deployShopEmbedFromDesigner = deployShopEmbedFromDesigner;
+
+// ------------------------------------------
+// REDEEM / GIFT CODES MANAGEMENT
+// ------------------------------------------
+async function loadRedeemCodes() {
+  const tbody = document.getElementById('redeemCodesTbody');
+  if (tbody) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center muted">Loading redeem codes...</td></tr>';
+  }
+
+  try {
+    const res = await fetch('/api/redeem-codes');
+    const data = await res.json();
+    state.redeemCodes = data.codes || [];
+
+    const stats = data.stats || { total: 0, active: 0, totalClaimed: 0, totalValue: 0 };
+    const elTot = document.getElementById('statRedeemTotal');
+    const elAct = document.getElementById('statRedeemActive');
+    const elCla = document.getElementById('statRedeemClaimed');
+    const elVal = document.getElementById('statRedeemValue');
+
+    if (elTot) elTot.textContent = stats.total;
+    if (elAct) elAct.textContent = stats.active;
+    if (elCla) elCla.textContent = stats.totalClaimed;
+    if (elVal) elVal.textContent = `₹${stats.totalValue.toLocaleString()}`;
+
+    renderRedeemCodesTable(state.redeemCodes);
+  } catch (err) {
+    console.error('Error loading redeem codes:', err);
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center" style="color: var(--accent-rose);">Failed to load redeem codes.</td></tr>';
+    }
+  }
+}
+
+function renderRedeemCodesTable(codes) {
+  const tbody = document.getElementById('redeemCodesTbody');
+  if (!tbody) return;
+
+  if (!codes || codes.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center muted" style="padding: 24px;">No redeem codes found. Click "Generate Code" above to create your first promo code!</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = codes
+    .map(c => {
+      const now = Date.now();
+      const isExpired = c.expiresAt && new Date(c.expiresAt).getTime() < now;
+      const isMaxed = c.maxUses > 0 && c.usedCount >= c.maxUses;
+      const isActive = c.isActive !== false && !isExpired && !isMaxed;
+
+      let statusBadge = '<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">🟢 Active</span>';
+      if (!c.isActive) {
+        statusBadge = '<span class="badge" style="background: rgba(100, 116, 139, 0.2); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.4);">⚫ Disabled</span>';
+      } else if (isExpired) {
+        statusBadge = '<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);">🟡 Expired</span>';
+      } else if (isMaxed) {
+        statusBadge = '<span class="badge" style="background: rgba(244, 63, 94, 0.15); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.3);">🔴 Claimed Out</span>';
+      }
+
+      const rewardDisplay =
+        c.type === 'item'
+          ? `<div style="display: flex; align-items: center; gap: 6px;">
+               <span style="font-size: 16px;">📦</span>
+               <strong>${escapeHtml(c.productName || 'Store Item')}</strong>
+               <span class="badge" style="background: rgba(0, 229, 255, 0.1); color: #00e5ff; font-size: 11px;">${escapeHtml(c.planDuration || '30 Days')}</span>
+             </div>`
+          : `<div style="display: flex; align-items: center; gap: 6px;">
+               <span style="font-size: 16px;">💳</span>
+               <strong style="color: #10b981;">₹${c.amount}</strong>
+               <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981; font-size: 11px;">Wallet Credit</span>
+             </div>`;
+
+      const claimsProgress =
+        c.maxUses > 0
+          ? `<div style="display: flex; align-items: center; gap: 8px;">
+               <span><strong>${c.usedCount}</strong> / ${c.maxUses}</span>
+               ${c.usedCount > 0 ? `<button type="button" class="btn btn-secondary btn-sm" onclick="openClaimedByModal('${escapeHtml(c.code)}')" style="padding: 2px 6px; font-size: 10px;">👥 View (${c.usedCount})</button>` : ''}
+             </div>`
+          : `<span><strong>${c.usedCount}</strong> / ∞</span> ${c.usedCount > 0 ? `<button type="button" class="btn btn-secondary btn-sm" onclick="openClaimedByModal('${escapeHtml(c.code)}')" style="padding: 2px 6px; font-size: 10px;">👥 View</button>` : ''}`;
+
+      const expiryDisplay = c.expiresAt
+        ? `<span style="font-size: 11px;">${new Date(c.expiresAt).toLocaleDateString()}</span>`
+        : '<span class="muted" style="font-size: 11px;">No Expiry</span>';
+
+      const createdDisplay = `
+        <div style="font-size: 11px;">
+          <div>${escapeHtml(c.createdBy || 'Staff')}</div>
+          <span class="muted">${new Date(c.createdAt).toLocaleDateString()}</span>
+        </div>
+      `;
+
+      return `
+        <tr id="row-redeem-${escapeHtml(c.code)}">
+          <td>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; font-weight: 700; color: #00e5ff; letter-spacing: 0.5px;">${escapeHtml(c.code)}</code>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="copyRedeemCode('${escapeHtml(c.code)}')" title="Copy Code" style="padding: 3px 7px;">📋</button>
+            </div>
+            ${c.note ? `<div class="muted" style="font-size: 11px; margin-top: 3px;">📝 ${escapeHtml(c.note)}</div>` : ''}
+          </td>
+          <td>
+            <span class="badge" style="font-size: 11px; text-transform: uppercase;">${c.type}</span>
+          </td>
+          <td>${rewardDisplay}</td>
+          <td>${claimsProgress}</td>
+          <td>${statusBadge}</td>
+          <td>${createdDisplay}</td>
+          <td>${expiryDisplay}</td>
+          <td style="text-align: right;">
+            <div style="display: inline-flex; gap: 6px;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="toggleRedeemCodeActive('${escapeHtml(c.code)}')" title="${c.isActive ? 'Disable Code' : 'Enable Code'}">
+                ${c.isActive ? '⏸️' : '▶️'}
+              </button>
+              <button type="button" class="btn btn-danger btn-sm" onclick="deleteRedeemCode('${escapeHtml(c.code)}')" title="Delete Code">
+                🗑️
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    })
+    .join('');
+}
+
+function filterRedeemCodesTable() {
+  const query = (document.getElementById('redeemSearchInput')?.value || '').toLowerCase().trim();
+  if (!query) {
+    renderRedeemCodesTable(state.redeemCodes);
+    return;
+  }
+  const filtered = (state.redeemCodes || []).filter(c => {
+    return (
+      (c.code || '').toLowerCase().includes(query) ||
+      (c.productName || '').toLowerCase().includes(query) ||
+      (c.note || '').toLowerCase().includes(query) ||
+      (c.createdBy || '').toLowerCase().includes(query) ||
+      (c.type || '').toLowerCase().includes(query)
+    );
+  });
+  renderRedeemCodesTable(filtered);
+}
+
+function openNewRedeemModal() {
+  const select = document.getElementById('redeemProductSelect');
+  if (select && state.products) {
+    select.innerHTML = state.products
+      .map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)} (${escapeHtml(p.category || 'Cheat')})</option>`)
+      .join('');
+    updateRedeemPlanOptions();
+  }
+  setRedeemType('item');
+  document.getElementById('redeemCustomCode').value = '';
+  document.getElementById('redeemMaxUses').value = '1';
+  document.getElementById('redeemExpiryDays').value = '';
+  document.getElementById('redeemNote').value = '';
+  document.getElementById('redeemWalletAmount').value = '';
+  openModal('redeemModal');
+}
+
+function setRedeemType(type) {
+  document.getElementById('redeemType').value = type;
+  const isItem = type === 'item';
+  const itemGrp = document.getElementById('redeemItemGroup');
+  const walletGrp = document.getElementById('redeemWalletGroup');
+  const btnItem = document.getElementById('btnTypeItem');
+  const btnWallet = document.getElementById('btnTypeWallet');
+
+  if (itemGrp) itemGrp.style.display = isItem ? 'block' : 'none';
+  if (walletGrp) walletGrp.style.display = isItem ? 'none' : 'block';
+
+  if (btnItem) {
+    btnItem.style.borderColor = isItem ? '#00e5ff' : 'var(--border-subtle)';
+    btnItem.style.color = isItem ? '#00e5ff' : 'var(--text-muted)';
+    btnItem.style.fontWeight = isItem ? '700' : '400';
+  }
+  if (btnWallet) {
+    btnWallet.style.borderColor = !isItem ? '#10b981' : 'var(--border-subtle)';
+    btnWallet.style.color = !isItem ? '#10b981' : 'var(--text-muted)';
+    btnWallet.style.fontWeight = !isItem ? '700' : '400';
+  }
+}
+
+function updateRedeemPlanOptions() {
+  const prodId = document.getElementById('redeemProductSelect')?.value;
+  const planSelect = document.getElementById('redeemPlanSelect');
+  if (!planSelect || !prodId || !state.products) return;
+
+  const product = state.products.find(p => p.id === prodId);
+  if (!product || !product.plans) {
+    planSelect.innerHTML = '<option value="30d">30 Days</option>';
+    return;
+  }
+
+  planSelect.innerHTML = Object.entries(product.plans)
+    .map(([key, plan]) => `<option value="${escapeHtml(key)}">${escapeHtml(plan.label || `${plan.durationDays} Days`)} — ₹${plan.price}</option>`)
+    .join('');
+}
+
+function generateRandomRedeemCodeField() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const rand = len => Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  document.getElementById('redeemCustomCode').value = `WX-${rand(4)}-${rand(4)}-${rand(4)}`;
+}
+
+async function handleCreateRedeemCode(e) {
+  e.preventDefault();
+  const type = document.getElementById('redeemType')?.value || 'item';
+  const productId = document.getElementById('redeemProductSelect')?.value;
+  const planKey = document.getElementById('redeemPlanSelect')?.value;
+  const amount = Number(document.getElementById('redeemWalletAmount')?.value) || 0;
+  const customCode = document.getElementById('redeemCustomCode')?.value.trim();
+  const maxUses = document.getElementById('redeemMaxUses')?.value;
+  const expiryDays = Number(document.getElementById('redeemExpiryDays')?.value) || 0;
+  const note = document.getElementById('redeemNote')?.value.trim();
+
+  let expiresAt = null;
+  if (expiryDays > 0) {
+    const exp = new Date();
+    exp.setDate(exp.getDate() + expiryDays);
+    expiresAt = exp.toISOString();
+  }
+
+  try {
+    const res = await fetch('/api/redeem-codes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code: customCode || null,
+        type,
+        productId,
+        planKey,
+        amount,
+        maxUses,
+        expiresAt,
+        note
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`🎁 Redeem code created: ${data.code.code}`, 'success');
+      closeModal('redeemModal');
+      loadRedeemCodes();
+    } else {
+      alert('Error: ' + (data.error || 'Failed to create redeem code'));
+    }
+  } catch (err) {
+    console.error('Error creating redeem code:', err);
+    alert('Request failed: ' + err.message);
+  }
+}
+
+function openBulkRedeemModal() {
+  const select = document.getElementById('bulkProductSelect');
+  if (select && state.products) {
+    select.innerHTML = state.products
+      .map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)} (${escapeHtml(p.category || 'Cheat')})</option>`)
+      .join('');
+    updateBulkPlanOptions();
+  }
+  setBulkRedeemType('item');
+  document.getElementById('bulkCount').value = '5';
+  document.getElementById('bulkPrefix').value = 'GIFT';
+  document.getElementById('bulkMaxUses').value = '1';
+  document.getElementById('bulkExpiryDays').value = '';
+  document.getElementById('bulkNote').value = '';
+  document.getElementById('bulkWalletAmount').value = '';
+  document.getElementById('bulkResultContainer').style.display = 'none';
+  document.getElementById('bulkOutputArea').value = '';
+  openModal('bulkRedeemModal');
+}
+
+function setBulkRedeemType(type) {
+  document.getElementById('bulkType').value = type;
+  const isItem = type === 'item';
+  const itemGrp = document.getElementById('bulkItemGroup');
+  const walletGrp = document.getElementById('bulkWalletGroup');
+  const btnItem = document.getElementById('btnBulkTypeItem');
+  const btnWallet = document.getElementById('btnBulkTypeWallet');
+
+  if (itemGrp) itemGrp.style.display = isItem ? 'block' : 'none';
+  if (walletGrp) walletGrp.style.display = isItem ? 'none' : 'block';
+
+  if (btnItem) {
+    btnItem.style.borderColor = isItem ? '#00e5ff' : 'var(--border-subtle)';
+    btnItem.style.color = isItem ? '#00e5ff' : 'var(--text-muted)';
+    btnItem.style.fontWeight = isItem ? '700' : '400';
+  }
+  if (btnWallet) {
+    btnWallet.style.borderColor = !isItem ? '#10b981' : 'var(--border-subtle)';
+    btnWallet.style.color = !isItem ? '#10b981' : 'var(--text-muted)';
+    btnWallet.style.fontWeight = !isItem ? '700' : '400';
+  }
+}
+
+function updateBulkPlanOptions() {
+  const prodId = document.getElementById('bulkProductSelect')?.value;
+  const planSelect = document.getElementById('bulkPlanSelect');
+  if (!planSelect || !prodId || !state.products) return;
+
+  const product = state.products.find(p => p.id === prodId);
+  if (!product || !product.plans) {
+    planSelect.innerHTML = '<option value="30d">30 Days</option>';
+    return;
+  }
+
+  planSelect.innerHTML = Object.entries(product.plans)
+    .map(([key, plan]) => `<option value="${escapeHtml(key)}">${escapeHtml(plan.label || `${plan.durationDays} Days`)} — ₹${plan.price}</option>`)
+    .join('');
+}
+
+async function handleBulkCreateRedeemCodes(e) {
+  e.preventDefault();
+  const count = Number(document.getElementById('bulkCount')?.value) || 5;
+  const prefix = document.getElementById('bulkPrefix')?.value.trim() || 'GIFT';
+  const type = document.getElementById('bulkType')?.value || 'item';
+  const productId = document.getElementById('bulkProductSelect')?.value;
+  const planKey = document.getElementById('bulkPlanSelect')?.value;
+  const amount = Number(document.getElementById('bulkWalletAmount')?.value) || 0;
+  const maxUses = Number(document.getElementById('bulkMaxUses')?.value) || 1;
+  const expiryDays = Number(document.getElementById('bulkExpiryDays')?.value) || 0;
+  const note = document.getElementById('bulkNote')?.value.trim();
+
+  let expiresAt = null;
+  if (expiryDays > 0) {
+    const exp = new Date();
+    exp.setDate(exp.getDate() + expiryDays);
+    expiresAt = exp.toISOString();
+  }
+
+  try {
+    const res = await fetch('/api/redeem-codes/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        count,
+        prefix,
+        type,
+        productId,
+        planKey,
+        amount,
+        maxUses,
+        expiresAt,
+        note
+      })
+    });
+    const data = await res.json();
+    if (data.success && data.codes) {
+      const outputText = data.codes.map(c => c.code).join('\n');
+      document.getElementById('bulkOutputArea').value = outputText;
+      document.getElementById('bulkResultContainer').style.display = 'block';
+      showToast(`⚡ Generated ${data.count} codes successfully!`, 'success');
+      loadRedeemCodes();
+    } else {
+      alert('Error: ' + (data.error || 'Failed to bulk generate codes'));
+    }
+  } catch (err) {
+    console.error('Error in bulk generate:', err);
+    alert('Request failed: ' + err.message);
+  }
+}
+
+function copyAllBulkCodes() {
+  const text = document.getElementById('bulkOutputArea')?.value;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('📋 All generated codes copied to clipboard!', 'success');
+  });
+}
+
+function copyRedeemCode(code) {
+  navigator.clipboard.writeText(code).then(() => {
+    showToast(`📋 Copied code: ${code}`, 'success');
+  });
+}
+
+async function deleteRedeemCode(code) {
+  if (!confirm(`Are you sure you want to delete and revoke code "${code}"?`)) return;
+  try {
+    const res = await fetch(`/api/redeem-codes/${encodeURIComponent(code)}`, {
+      method: 'DELETE'
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`🗑️ Code "${code}" deleted.`, 'info');
+      loadRedeemCodes();
+    } else {
+      alert('Error: ' + (data.error || 'Could not delete code'));
+    }
+  } catch (err) {
+    alert('Request failed: ' + err.message);
+  }
+}
+
+async function toggleRedeemCodeActive(code) {
+  try {
+    const res = await fetch(`/api/redeem-codes/${encodeURIComponent(code)}/toggle`, {
+      method: 'PATCH'
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`Code "${code}" status updated.`, 'info');
+      loadRedeemCodes();
+    }
+  } catch (err) {
+    alert('Request failed: ' + err.message);
+  }
+}
+
+function openClaimedByModal(codeStr) {
+  const code = (state.redeemCodes || []).find(c => c.code === codeStr);
+  if (!code) return;
+  document.getElementById('claimedByModalTitle').textContent = `👥 Claim History for "${code.code}"`;
+  const tbody = document.getElementById('claimedByTbody');
+  if (!tbody) return;
+
+  const claims = code.claimedBy || [];
+  if (claims.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" class="text-center muted">No users have claimed this code yet.</td></tr>';
+  } else {
+    tbody.innerHTML = claims
+      .map(c => `
+        <tr>
+          <td>
+            <strong>${escapeHtml(c.username || 'User')}</strong>
+            <div class="muted" style="font-size: 11px;">ID: ${escapeHtml(c.userId)}</div>
+          </td>
+          <td>${new Date(c.claimedAt).toLocaleString()}</td>
+          <td>
+            ${c.deliveredKey ? `<code style="color: #00e5ff; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">${escapeHtml(c.deliveredKey)}</code>` : '<span class="muted">—</span>'}
+          </td>
+        </tr>
+      `)
+      .join('');
+  }
+  openModal('claimedByModal');
+}
+
+window.loadRedeemCodes = loadRedeemCodes;
+window.renderRedeemCodesTable = renderRedeemCodesTable;
+window.filterRedeemCodesTable = filterRedeemCodesTable;
+window.openNewRedeemModal = openNewRedeemModal;
+window.setRedeemType = setRedeemType;
+window.updateRedeemPlanOptions = updateRedeemPlanOptions;
+window.generateRandomRedeemCodeField = generateRandomRedeemCodeField;
+window.handleCreateRedeemCode = handleCreateRedeemCode;
+window.openBulkRedeemModal = openBulkRedeemModal;
+window.setBulkRedeemType = setBulkRedeemType;
+window.updateBulkPlanOptions = updateBulkPlanOptions;
+window.handleBulkCreateRedeemCodes = handleBulkCreateRedeemCodes;
+window.copyAllBulkCodes = copyAllBulkCodes;
+window.copyRedeemCode = copyRedeemCode;
+window.deleteRedeemCode = deleteRedeemCode;
+window.toggleRedeemCodeActive = toggleRedeemCodeActive;
+window.openClaimedByModal = openClaimedByModal;
 
 

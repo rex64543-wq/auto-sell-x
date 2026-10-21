@@ -37,6 +37,9 @@ module.exports = {
           name: '🛠️ Command Reference',
           value:
             '`/shop send` - Post shop catalog in channel\n' +
+            '`/claim` - Claim a gift or promotional redeem code\n' +
+            '`/redeem generate` - Generate promotional gift codes (Staff)\n' +
+            '`/wallet` - Check your wallet balance and recent activity\n' +
             '`/product add` - Add a new product\n' +
             '`/product config_keyauth` - Configure KeyAuth Seller API\n' +
             '`/product config_api` - Configure Custom REST API\n' +

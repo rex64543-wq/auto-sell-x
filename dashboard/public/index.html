@@ -124,6 +124,10 @@
           <span class="nav-icon">🔑</span>
           <span class="nav-label">Stock & Keys</span>
         </a>
+        <a href="#redeem-codes" class="nav-item" data-tab="redeem-codes">
+          <span class="nav-icon">🎁</span>
+          <span class="nav-label">Redeem Codes</span>
+        </a>
         <a href="#settings" class="nav-item" data-tab="settings">
           <span class="nav-icon">⚙️</span>
           <span class="nav-label">Store Settings</span>
@@ -451,6 +455,94 @@
         <section id="view-stock" class="view-section">
           <div class="stock-grid" id="stockGrid">
             <!-- Injected by JS -->
+          </div>
+        </section>
+
+        <!-- ===================================== -->
+        <!-- 5B. REDEEM & GIFT CODES VIEW          -->
+        <!-- ===================================== -->
+        <section id="view-redeem-codes" class="view-section">
+          <!-- STATS OVERVIEW -->
+          <div class="metrics-grid" style="margin-bottom: 24px;">
+            <div class="metric-card glass-card">
+              <div class="metric-icon" style="background: rgba(0, 229, 255, 0.12); color: #00e5ff;">🎁</div>
+              <div class="metric-info">
+                <span class="metric-label">Total Generated Codes</span>
+                <h3 class="metric-val" id="statRedeemTotal">0</h3>
+                <small class="muted">All created promo codes</small>
+              </div>
+            </div>
+            <div class="metric-card glass-card">
+              <div class="metric-icon" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">⚡</div>
+              <div class="metric-info">
+                <span class="metric-label">Active & Available</span>
+                <h3 class="metric-val" id="statRedeemActive">0</h3>
+                <small class="muted">Ready to be claimed</small>
+              </div>
+            </div>
+            <div class="metric-card glass-card">
+              <div class="metric-icon" style="background: rgba(168, 85, 247, 0.12); color: #a855f7;">🎉</div>
+              <div class="metric-info">
+                <span class="metric-label">Times Claimed</span>
+                <h3 class="metric-val" id="statRedeemClaimed">0</h3>
+                <small class="muted">Successfully redeemed in Discord</small>
+              </div>
+            </div>
+            <div class="metric-card glass-card">
+              <div class="metric-icon" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">💰</div>
+              <div class="metric-info">
+                <span class="metric-label">Total Value Distributed</span>
+                <h3 class="metric-val" id="statRedeemValue">₹0</h3>
+                <small class="muted">Items & wallet gift value</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- TOOLBAR -->
+          <div class="section-toolbar">
+            <div class="search-box">
+              <input type="text" id="redeemSearchInput" placeholder="🔍 Search code, item, note, or creator..." oninput="filterRedeemCodesTable()">
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button class="btn btn-secondary btn-sm" onclick="loadRedeemCodes()">
+                <span class="btn-icon">🔄</span> Refresh
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="openBulkRedeemModal()" style="border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc;">
+                <span class="btn-icon">⚡</span> Bulk Generate
+              </button>
+              <button class="btn btn-primary btn-sm" onclick="openNewRedeemModal()">
+                <span class="btn-icon">➕</span> Generate Code
+              </button>
+            </div>
+          </div>
+
+          <!-- TABLE -->
+          <div class="card glass-card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+              <div>
+                <h3>🎁 Active & Past Redeem Codes</h3>
+                <small class="muted">Users can claim any active code by running <code>/claim code:&lt;CODE&gt;</code> in your Discord server.</small>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Redeem Code</th>
+                    <th>Reward Type</th>
+                    <th>Item / Credit Details</th>
+                    <th>Claims / Max</th>
+                    <th>Status</th>
+                    <th>Created By</th>
+                    <th>Expires</th>
+                    <th style="text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="redeemCodesTbody">
+                  <tr><td colspan="8" class="text-center muted">Loading redeem codes...</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
 
@@ -1763,6 +1855,222 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal: Generate Single Redeem Code -->
+  <div class="modal-backdrop" id="redeemModal">
+    <div class="modal-box glass-card" style="max-width: 580px;">
+      <div class="modal-header">
+        <h3 id="redeemModalTitle">🎁 Generate Redeem Code</h3>
+        <button class="modal-close-btn" onclick="closeModal('redeemModal')">&times;</button>
+      </div>
+      <form id="redeemCodeForm" onsubmit="handleCreateRedeemCode(event)">
+        <div class="modal-body">
+          <!-- Reward Type Switch -->
+          <div class="form-group">
+            <label>Reward Type <span style="color: var(--accent-rose);">*</span></label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <button type="button" class="btn btn-secondary btn-sm" id="btnTypeItem" onclick="setRedeemType('item')" style="border-color: #00e5ff; color: #00e5ff; font-weight: 700;">
+                📦 Store Cheat / Item
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btnTypeWallet" onclick="setRedeemType('wallet')">
+                💳 Wallet Balance
+              </button>
+            </div>
+            <input type="hidden" id="redeemType" value="item">
+          </div>
+
+          <!-- Product & Plan Group (for item type) -->
+          <div id="redeemItemGroup">
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label>Select Cheat / Product <span style="color: var(--accent-rose);">*</span></label>
+                <select id="redeemProductSelect" class="form-input" onchange="updateRedeemPlanOptions()">
+                  <!-- Injected via JS -->
+                </select>
+              </div>
+              <div class="form-group flex-1">
+                <label>Duration Plan <span style="color: var(--accent-rose);">*</span></label>
+                <select id="redeemPlanSelect" class="form-input">
+                  <!-- Injected via JS -->
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Wallet Balance Group (for wallet type) -->
+          <div id="redeemWalletGroup" style="display: none;">
+            <div class="form-group">
+              <label>Amount to Credit (₹ INR) <span style="color: var(--accent-rose);">*</span></label>
+              <input type="number" id="redeemWalletAmount" class="form-input" placeholder="e.g. 150, 500, 1000" min="1" step="1">
+              <small class="muted">This amount will be added to the user's virtual wallet balance when claimed.</small>
+            </div>
+          </div>
+
+          <!-- Code string & Randomizer -->
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label style="margin: 0;">Custom Code (Optional)</label>
+              <button type="button" class="link-btn" onclick="generateRandomRedeemCodeField()" style="font-size: 11px;">
+                🎲 Random Code
+              </button>
+            </div>
+            <input type="text" id="redeemCustomCode" class="form-input" placeholder="e.g. VIP-PROMO-2026 (Leave empty to auto-generate)" style="font-family: var(--font-mono); text-transform: uppercase;">
+            <small class="muted">Leave blank for automatic <code>WX-XXXX-XXXX-XXXX</code> format.</small>
+          </div>
+
+          <!-- Max Uses & Expiry -->
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Max Claims / Uses</label>
+              <input type="number" id="redeemMaxUses" class="form-input" value="1" min="1" step="1">
+              <small class="muted">1 = Single-use gift code</small>
+            </div>
+            <div class="form-group flex-1">
+              <label>Days Valid (Expiry)</label>
+              <input type="number" id="redeemExpiryDays" class="form-input" placeholder="e.g. 7, 30 (Empty = Never)" min="1" step="1">
+              <small class="muted">Leave blank for no expiration</small>
+            </div>
+          </div>
+
+          <!-- Note / Label -->
+          <div class="form-group">
+            <label>Note / Campaign Tag (Optional)</label>
+            <input type="text" id="redeemNote" class="form-input" placeholder="e.g. Giveaway Winner, Discord Promo, Compensation">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('redeemModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveRedeemCode">
+            <span class="btn-icon">🎁</span> Generate Code
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Bulk Generate Codes -->
+  <div class="modal-backdrop" id="bulkRedeemModal">
+    <div class="modal-box glass-card" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3>⚡ Bulk Generate Redeem Codes</h3>
+        <button class="modal-close-btn" onclick="closeModal('bulkRedeemModal')">&times;</button>
+      </div>
+      <form id="bulkRedeemForm" onsubmit="handleBulkCreateRedeemCodes(event)">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Number of Codes to Generate <span style="color: var(--accent-rose);">*</span></label>
+              <input type="number" id="bulkCount" class="form-input" value="5" min="1" max="50" required>
+              <small class="muted">Max 50 codes per batch</small>
+            </div>
+            <div class="form-group flex-1">
+              <label>Code Prefix</label>
+              <input type="text" id="bulkPrefix" class="form-input" value="GIFT" maxlength="8" placeholder="e.g. PROMO, GIVEAWAY" style="font-family: var(--font-mono); text-transform: uppercase;">
+              <small class="muted">e.g. GIFT-XXXX-XXXX</small>
+            </div>
+          </div>
+
+          <!-- Reward Type Switch for Bulk -->
+          <div class="form-group">
+            <label>Reward Type</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <button type="button" class="btn btn-secondary btn-sm" id="btnBulkTypeItem" onclick="setBulkRedeemType('item')" style="border-color: #00e5ff; color: #00e5ff; font-weight: 700;">
+                📦 Store Cheat / Item
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btnBulkTypeWallet" onclick="setBulkRedeemType('wallet')">
+                💳 Wallet Balance
+              </button>
+            </div>
+            <input type="hidden" id="bulkType" value="item">
+          </div>
+
+          <div id="bulkItemGroup">
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label>Select Cheat / Product</label>
+                <select id="bulkProductSelect" class="form-input" onchange="updateBulkPlanOptions()">
+                  <!-- Injected via JS -->
+                </select>
+              </div>
+              <div class="form-group flex-1">
+                <label>Duration Plan</label>
+                <select id="bulkPlanSelect" class="form-input">
+                  <!-- Injected via JS -->
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div id="bulkWalletGroup" style="display: none;">
+            <div class="form-group">
+              <label>Amount (₹ INR)</label>
+              <input type="number" id="bulkWalletAmount" class="form-input" placeholder="e.g. 100, 250" min="1">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Claims Per Code</label>
+              <input type="number" id="bulkMaxUses" class="form-input" value="1" min="1">
+            </div>
+            <div class="form-group flex-1">
+              <label>Days Valid (Expiry)</label>
+              <input type="number" id="bulkExpiryDays" class="form-input" placeholder="e.g. 7 (Blank = Never)">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Campaign Note (Optional)</label>
+            <input type="text" id="bulkNote" class="form-input" placeholder="e.g. Discord Giveaway Batch 1">
+          </div>
+
+          <!-- Generated Output Box -->
+          <div id="bulkResultContainer" style="display: none; margin-top: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <strong style="color: #10b981; font-size: 13px;">✅ Generated Codes Ready:</strong>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="copyAllBulkCodes()">📋 Copy All Codes</button>
+            </div>
+            <textarea id="bulkOutputArea" class="form-input" rows="6" readonly style="font-family: var(--font-mono); font-size: 12px;"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('bulkRedeemModal')">Close</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitBulkRedeem">
+            <span class="btn-icon">⚡</span> Generate Batch
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: View Claimed By Users -->
+  <div class="modal-backdrop" id="claimedByModal">
+    <div class="modal-box glass-card" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3 id="claimedByModalTitle">👥 Code Claim History</h3>
+        <button class="modal-close-btn" onclick="closeModal('claimedByModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>User (Discord ID)</th>
+                <th>Claimed At</th>
+                <th>Delivered License Key</th>
+              </tr>
+            </thead>
+            <tbody id="claimedByTbody">
+              <tr><td colspan="3" class="text-center muted">No claims yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('claimedByModal')">Close</button>
+      </div>
     </div>
   </div>
 
