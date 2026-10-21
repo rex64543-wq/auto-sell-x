@@ -59,37 +59,7 @@
     "BDT": 1.4,
     "NPR": 1.6
   },
-  "paymentMethods": {
-    "upi": {
-      "enabled": true,
-      "name": "UPI / QR Code",
-      "upiId": "milindy783@okaxis",
-      "payeeName": "White X Store",
-      "details": "GPay / PhonePe / Paytm se niche diya QR Code Scan karke Pay karein!\nPayment hone ke baad niche Submit UTR / Upload Proof button pe click karein."
-    },
-    "bkash": {
-      "enabled": true,
-      "name": "bKash / Nagad (BDT)",
-      "number": "01XXXXXXXXX",
-      "details": "🇧🇩 **bKash / Nagad (Personal)**: `01XXXXXXXXX` (Send Money)\nPayment complete hone ke baad TrxID / Screenshot submit karein."
-    },
-    "credit": {
-      "enabled": true,
-      "name": "Credit / Debit Card",
-      "paymentLink": "https://buy.stripe.com/card_checkout",
-      "details": "Pay securely with any Credit or Debit Card (Visa, MasterCard, RuPay, Amex).\nPayment complete hone ke baad UTR / Reference ID submit karein."
-    },
-    "crypto": {
-      "enabled": true,
-      "name": "Cryptocurrency",
-      "details": "USDT (TRC20): TYourWalletAddressHere\nLTC: LYourLtcAddressHere\nBTC: bc1YourBtcAddressHere"
-    },
-    "paypal": {
-      "enabled": true,
-      "name": "PayPal",
-      "details": "PayPal: https://paypal.me/yourusername\nPlease send as Friends & Family only!"
-    }
-  },
+  "paymentMethods": {},
   "apiConnections": {},
   "lastCatalogMessageId": "1560203438556581969",
   "shopChannelId": "1560165792195149925",
