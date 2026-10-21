@@ -610,39 +610,46 @@ async function loadAllData() {
 
 async function fetchBotStatus() {
   try {
-    let res = await fetch('/api/status?_t=' + Date.now());
+    let [statusRes, healthRes] = await Promise.allSettled([
+      fetch('/api/status?_t=' + Date.now()),
+      fetch('/api/health?_t=' + Date.now())
+    ]);
+
     let data = {};
-    if (res.ok) {
-      data = await res.json();
-    } else {
-      const healthRes = await fetch('/api/health?_t=' + Date.now());
-      if (healthRes.ok) {
-        const healthData = await healthRes.json();
-        data = {
-          online: Boolean(healthData.botReady || healthData.online),
-          botTag: healthData.botTag,
-          guildsCount: healthData.guildCount,
-          ping: 42,
-          error: healthData.loginStatus?.error
-        };
-      }
+    if (statusRes.status === 'fulfilled' && statusRes.value.ok) {
+      data = await statusRes.value.json();
     }
 
-    state.botStatus = data;
+    let healthData = null;
+    if (healthRes.status === 'fulfilled' && healthRes.value.ok) {
+      healthData = await healthRes.value.json();
+    }
+
+    const isOnline = Boolean(data.online || healthData?.botReady);
+    state.botStatus = { ...data, healthData, online: isOnline };
 
     const pulseDot = document.getElementById('botPulseDot');
     const statusText = document.getElementById('botStatusText');
     const metaText = document.getElementById('botMetaText');
 
-    if (data.online || data.botReady) {
+    if (isOnline) {
       if (pulseDot) pulseDot.classList.remove('offline');
       if (statusText) statusText.textContent = 'Bot Connected';
-      if (metaText) metaText.textContent = `${data.botTag || 'Auto Sell Store#8906'} • ${data.guildsCount || data.guildCount || 1} Server(s) • ${data.ping || 42}ms`;
+      const botTag = data.botTag || healthData?.botTag || 'Auto Sell Store#8906';
+      const guilds = data.guildsCount || healthData?.guildCount || 1;
+      const ping = data.ping || 42;
+      if (metaText) metaText.textContent = `${botTag} • ${guilds} Server(s) • ${ping}ms`;
     } else {
       if (pulseDot) pulseDot.classList.add('offline');
-      if (statusText) statusText.textContent = 'Bot Offline';
-      if (metaText) {
-        metaText.textContent = data.error || 'Connecting to Discord...';
+      const probe = healthData?.discordApiProbe;
+      if (probe && probe.httpStatus === 429) {
+        const retrySec = parseInt(probe.retryAfter, 10) || 600;
+        const mins = Math.ceil(retrySec / 60);
+        if (statusText) statusText.textContent = 'Discord Rate Limit (429)';
+        if (metaText) metaText.textContent = `Render EU IP cooldown: ~${mins} min(s) remaining (or switch Render region to Oregon)`;
+      } else {
+        if (statusText) statusText.textContent = 'Bot Offline';
+        if (metaText) metaText.textContent = data.error || healthData?.loginStatus?.error || 'Connecting to Discord Gateway...';
       }
     }
   } catch (e) {

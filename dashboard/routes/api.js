@@ -280,19 +280,6 @@ module.exports = function (client) {
     });
   });
 
-  // Health check endpoint (Public)
-  router.get('/health', (req, res) => {
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-    const isReady = Boolean(client && client.isReady && client.isReady());
-    res.json({
-      status: 'ok',
-      online: isReady,
-      botReady: isReady,
-      botTag: isReady ? client.user.tag : 'Auto Sell Store#8906',
-      guildCount: isReady ? client.guilds.cache.size : 1,
-      loginStatus: client.loginStatus || {}
-    });
-  });
 
   // ------------------------------------------
   // PROTECTED ENDPOINTS (REQUIRE AUTHENTICATION)
