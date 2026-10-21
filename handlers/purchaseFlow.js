@@ -213,15 +213,18 @@ class PurchaseFlow {
       interaction.customId?.startsWith('shop_select_preview_currency_') ||
       (interaction.isButton() && interaction.customId.startsWith('back_to_product_'))
     ) {
-      await interaction.update({
+      if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferUpdate();
+      }
+      await interaction.editReply({
         embeds: [embed],
         components: rows
       });
     } else if (!interaction.replied && !interaction.deferred) {
-      await interaction.reply({
+      await interaction.deferReply({ ephemeral: true });
+      await interaction.editReply({
         embeds: [embed],
-        components: rows,
-        ephemeral: true
+        components: rows
       });
     } else {
       await interaction.followUp({
@@ -253,6 +256,12 @@ class PurchaseFlow {
       };
     }
 
+    const defaultCurr = db.getDefaultCurrency();
+    let initialMethod = 'binance';
+    if (defaultCurr === 'INR') initialMethod = 'upi';
+    else if (defaultCurr === 'NPR') initialMethod = 'esewa';
+    else if (defaultCurr === 'USD') initialMethod = 'binance';
+
     // Create Order in DB
     const order = db.createOrder({
       userId: interaction.user.id,
@@ -264,8 +273,8 @@ class PurchaseFlow {
       durationDays: plan.durationDays || 30,
       amount: plan.price,
       currency: plan.currency || '₹',
-      selectedCurrency: db.getDefaultCurrency(),
-      paymentMethod: 'upi',
+      selectedCurrency: defaultCurr,
+      paymentMethod: initialMethod,
       deliveryType: product.deliveryType || 'keyauth'
     });
 
@@ -288,7 +297,7 @@ class PurchaseFlow {
           ephemeral: true
         });
 
-        await this.sendPaymentScreenToChannel(ticketChannel, order, 'upi');
+        await this.sendPaymentScreenToChannel(ticketChannel, order, initialMethod, defaultCurr);
         return;
       } catch (ticketErr) {
         console.error('Failed to create ticket channel, falling back to direct:', ticketErr);
@@ -296,7 +305,7 @@ class PurchaseFlow {
     }
 
     // DIRECT NO-TICKET METHOD: Render the payment screen with QR code & toggles directly in this channel (ephemeral)
-    await this.renderPaymentScreen(interaction, order.id, 'upi');
+    await this.renderPaymentScreen(interaction, order.id, initialMethod, defaultCurr);
   }
 
   /**
@@ -645,7 +654,10 @@ class PurchaseFlow {
     const components = [currencyRow, toggleRow, actionRow];
 
     if (interaction.isButton() || interaction.isStringSelectMenu()) {
-      await interaction.update({
+      if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferUpdate();
+      }
+      await interaction.editReply({
         embeds: [embed],
         components,
         files: files || []
@@ -657,11 +669,11 @@ class PurchaseFlow {
         files: files || []
       });
     } else {
-      await interaction.reply({
+      await interaction.deferReply({ ephemeral: true });
+      await interaction.editReply({
         embeds: [embed],
         components,
-        files: files || [],
-        ephemeral: true
+        files: files || []
       });
     }
   }

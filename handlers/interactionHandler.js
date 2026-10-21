@@ -122,7 +122,12 @@ class InteractionHandler {
       const currency = raw.substring(lastUnderscore + 1) || defaultCurr;
 
       const order = require('../database/db').getOrder(orderId);
-      const method = order ? (order.paymentMethod || 'upi') : 'upi';
+      let method = order ? (order.paymentMethod || 'binance') : 'binance';
+
+      // Smart auto-switch payment method to match currency!
+      if (currency === 'USD') method = 'binance';
+      else if (currency === 'NPR') method = 'esewa';
+      else if (currency === 'INR') method = 'upi';
 
       await purchaseFlow.renderPaymentScreen(interaction, orderId, method, currency);
     } else if (customId.startsWith('shop_select_preview_currency_')) {
@@ -147,7 +152,14 @@ class InteractionHandler {
       await purchaseFlow.handlePlanSelection(interaction, productId, planKey);
     } else if (customId.startsWith('pay_now_')) {
       const orderId = customId.replace('pay_now_', '');
-      await purchaseFlow.renderPaymentScreen(interaction, orderId, 'upi');
+      const order = require('../database/db').getOrder(orderId);
+      const defaultCurr = require('../database/db').getDefaultCurrency();
+      const curr = order?.selectedCurrency || defaultCurr;
+      let initialMethod = 'binance';
+      if (curr === 'INR') initialMethod = 'upi';
+      else if (curr === 'NPR') initialMethod = 'esewa';
+      else if (curr === 'USD') initialMethod = 'binance';
+      await purchaseFlow.renderPaymentScreen(interaction, orderId, initialMethod, curr);
     } else if (customId.startsWith('toggle_pay_')) {
       // format: toggle_pay_{orderId}_{method}
       const raw = customId.replace('toggle_pay_', '');

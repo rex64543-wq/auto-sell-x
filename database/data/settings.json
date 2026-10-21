@@ -82,7 +82,7 @@
     },
     "binance": {
       "enabled": true,
-      "name": "Binance Pay (International)",
+      "name": "USD / International Payment (Binance Pay)",
       "emoji": "🌐",
       "currency": "USD",
       "number": "User-7bad1",
