@@ -205,6 +205,23 @@ class InteractionHandler {
       await purchaseFlow.handleShopLiveStatus(interaction);
     } else if (customId === 'shop_help') {
       await purchaseFlow.handleShopHelp(interaction);
+    } else if (customId === 'shop_claim_redeem') {
+      const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
+      const modal = new ModalBuilder()
+        .setCustomId('modal_shop_claim_redeem')
+        .setTitle('🎁 Claim Gift / Redeem Code');
+
+      const codeInput = new TextInputBuilder()
+        .setCustomId('redeem_code_value')
+        .setLabel('Enter Your Gift Code')
+        .setPlaceholder('e.g. WX-XXXX-XXXX-XXXX or VIP-PROMO')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+        .setMinLength(3)
+        .setMaxLength(64);
+
+      modal.addComponents(new ActionRowBuilder().addComponents(codeInput));
+      await interaction.showModal(modal);
     } else if (customId.startsWith('buy_wallet_')) {
       const orderId = customId.replace('buy_wallet_', '');
       await purchaseFlow.handleBuyWithWallet(interaction, orderId);
@@ -234,7 +251,72 @@ class InteractionHandler {
   async handleModalSubmit(interaction) {
     const customId = interaction.customId;
 
-    if (customId === 'modal_wallet_topup') {
+    if (customId === 'modal_shop_claim_redeem') {
+      await interaction.deferReply({ ephemeral: true });
+      const codeStr = (interaction.fields.getTextInputValue('redeem_code_value') || '').trim();
+      const redeemService = require('../services/redeemService');
+      const db = require('../database/db');
+      const settings = db.getSettings();
+      const storeName = settings.storeName || 'White X Store';
+      const { EmbedBuilder } = require('discord.js');
+
+      const result = await redeemService.claim(
+        interaction.user,
+        codeStr,
+        interaction.guild,
+        interaction.client
+      );
+
+      if (!result.success) {
+        const errEmbed = new EmbedBuilder()
+          .setTitle('❌ Claim Failed')
+          .setColor(0xf43f5e)
+          .setDescription(`**${result.reason || 'Could not redeem code.'}**`)
+          .setFooter({ text: `${storeName} • If you think this is an error, please open a support ticket.` })
+          .setTimestamp();
+        return interaction.editReply({ embeds: [errEmbed] });
+      }
+
+      if (result.type === 'item') {
+        const itemEmbed = new EmbedBuilder()
+          .setTitle('🎉 GIFT CODE REDEEMED SUCCESSFULLY!')
+          .setColor(0x00e5ff)
+          .setDescription(
+            `Congratulations <@${interaction.user.id}>! You have claimed your store item:\n\n` +
+            `• **Item:** \`${result.productName}\`\n` +
+            `• **Duration:** \`${result.planDuration}\`\n` +
+            `• **Code:** \`${result.code}\`\n\n` +
+            `🔑 **YOUR LICENSE KEY:**\n\`\`\`${result.licenseKey}\`\`\`\n` +
+            `*(Click to reveal: ||${result.licenseKey}||)*\n\n` +
+            `📨 A private backup has also been delivered to your **Discord DMs**!`
+          )
+          .setFooter({ text: `${storeName} • 24/7 Automated Delivery` })
+          .setTimestamp();
+
+        if (result.downloadUrl) {
+          itemEmbed.addFields({ name: '📥 Download Loader', value: `[Click Here to Download](${result.downloadUrl})`, inline: false });
+        }
+        if (result.instructions) {
+          itemEmbed.addFields({ name: '📖 Setup Guide', value: `${result.instructions}`, inline: false });
+        }
+        return interaction.editReply({ embeds: [itemEmbed] });
+      }
+
+      if (result.type === 'wallet') {
+        const walletEmbed = new EmbedBuilder()
+          .setTitle('🎉 WALLET GIFT CODE REDEEMED!')
+          .setColor(0x2ecc71)
+          .setDescription(
+            `Congratulations <@${interaction.user.id}>! Your wallet balance has been updated:\n\n` +
+            `• **Amount Credited:** \`₹${result.amount}\`\n` +
+            `• **New Balance:** \`₹${result.newBalance.toFixed(2)}\`\n` +
+            `• **Code:** \`${result.code}\``
+          )
+          .setFooter({ text: `${storeName} • Wallet System` })
+          .setTimestamp();
+        return interaction.editReply({ embeds: [walletEmbed] });
+      }
+    } else if (customId === 'modal_wallet_topup') {
       await purchaseFlow.handleWalletTopupSubmit(interaction);
     } else if (customId.startsWith('modal_proof_')) {
       const orderId = customId.replace('modal_proof_', '');

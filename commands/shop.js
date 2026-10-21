@@ -136,7 +136,11 @@ module.exports = {
       new ButtonBuilder()
         .setCustomId('shop_help')
         .setLabel('❓ Help & Guide')
-        .setStyle(ButtonStyle.Secondary)
+        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
+        .setCustomId('shop_claim_redeem')
+        .setLabel('🎁 Claim Code')
+        .setStyle(ButtonStyle.Success)
     );
 
     const components = [menuRow, actionRow];

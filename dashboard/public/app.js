@@ -1785,26 +1785,6 @@ function setupEventHandlers() {
     vmForm.addEventListener('submit', saveVariantMappingForm);
   }
 
-  // Redeem Code Toolbar Buttons & Forms
-  const btnNewRedeem = document.getElementById('btnOpenNewRedeem');
-  if (btnNewRedeem) {
-    btnNewRedeem.addEventListener('click', () => openNewRedeemModal());
-  }
-
-  const btnBulkRedeem = document.getElementById('btnOpenBulkRedeem');
-  if (btnBulkRedeem) {
-    btnBulkRedeem.addEventListener('click', () => openBulkRedeemModal());
-  }
-
-  const redeemForm = document.getElementById('redeemCodeForm');
-  if (redeemForm) {
-    redeemForm.addEventListener('submit', handleCreateRedeemCode);
-  }
-
-  const bulkRedeemForm = document.getElementById('bulkRedeemForm');
-  if (bulkRedeemForm) {
-    bulkRedeemForm.addEventListener('submit', handleBulkCreateRedeemCodes);
-  }
 }
 
 // ------------------------------------------
@@ -3578,27 +3558,11 @@ function filterRedeemCodesTable() {
   renderRedeemCodesTable(filtered);
 }
 
-async function openNewRedeemModal() {
-  const select = document.getElementById('redeemProductSelect');
-  if (!Array.isArray(state.products) || state.products.length === 0) {
-    try {
-      const res = await fetch('/api/products');
-      const data = await res.json();
-      if (Array.isArray(data)) state.products = data;
-    } catch (err) {
-      console.error('Failed to load products for redeem modal:', err);
-    }
-  }
+function openNewRedeemModal() {
+  // 1. Immediately open the modal dialog without any blocking wait
+  openModal('redeemModal');
 
-  if (select && Array.isArray(state.products) && state.products.length > 0) {
-    select.innerHTML = state.products
-      .map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)} (${escapeHtml(p.category || 'Cheat')})</option>`)
-      .join('');
-    updateRedeemPlanOptions();
-  } else if (select) {
-    select.innerHTML = '<option value="">No products available</option>';
-  }
-
+  // 2. Reset form inputs
   setRedeemType('item');
   const customCodeInput = document.getElementById('redeemCustomCode');
   if (customCodeInput) customCodeInput.value = '';
@@ -3611,7 +3575,32 @@ async function openNewRedeemModal() {
   const walletAmountInput = document.getElementById('redeemWalletAmount');
   if (walletAmountInput) walletAmountInput.value = '';
 
-  openModal('redeemModal');
+  // 3. Populate product options asynchronously
+  populateRedeemModalProducts();
+}
+
+async function populateRedeemModalProducts() {
+  const select = document.getElementById('redeemProductSelect');
+  if (!select) return;
+
+  if (!Array.isArray(state.products) || state.products.length === 0) {
+    try {
+      const res = await fetch('/api/products');
+      const data = await res.json();
+      if (Array.isArray(data)) state.products = data;
+    } catch (err) {
+      console.error('Failed to load products for redeem modal:', err);
+    }
+  }
+
+  if (Array.isArray(state.products) && state.products.length > 0) {
+    select.innerHTML = state.products
+      .map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)} (${escapeHtml(p.category || 'Cheat')})</option>`)
+      .join('');
+    updateRedeemPlanOptions();
+  } else {
+    select.innerHTML = '<option value="">No products available</option>';
+  }
 }
 
 function setRedeemType(type) {
@@ -3736,27 +3725,11 @@ async function handleCreateRedeemCode(e) {
   }
 }
 
-async function openBulkRedeemModal() {
-  const select = document.getElementById('bulkProductSelect');
-  if (!Array.isArray(state.products) || state.products.length === 0) {
-    try {
-      const res = await fetch('/api/products');
-      const data = await res.json();
-      if (Array.isArray(data)) state.products = data;
-    } catch (err) {
-      console.error('Failed to load products for bulk redeem modal:', err);
-    }
-  }
+function openBulkRedeemModal() {
+  // 1. Immediately open bulk modal
+  openModal('bulkRedeemModal');
 
-  if (select && Array.isArray(state.products) && state.products.length > 0) {
-    select.innerHTML = state.products
-      .map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)} (${escapeHtml(p.category || 'Cheat')})</option>`)
-      .join('');
-    updateBulkPlanOptions();
-  } else if (select) {
-    select.innerHTML = '<option value="">No products available</option>';
-  }
-
+  // 2. Reset form inputs
   setBulkRedeemType('item');
   const countInput = document.getElementById('bulkCount');
   if (countInput) countInput.value = '5';
@@ -3775,7 +3748,32 @@ async function openBulkRedeemModal() {
   const outputArea = document.getElementById('bulkOutputArea');
   if (outputArea) outputArea.value = '';
 
-  openModal('bulkRedeemModal');
+  // 3. Populate product options asynchronously
+  populateBulkModalProducts();
+}
+
+async function populateBulkModalProducts() {
+  const select = document.getElementById('bulkProductSelect');
+  if (!select) return;
+
+  if (!Array.isArray(state.products) || state.products.length === 0) {
+    try {
+      const res = await fetch('/api/products');
+      const data = await res.json();
+      if (Array.isArray(data)) state.products = data;
+    } catch (err) {
+      console.error('Failed to load products for bulk redeem modal:', err);
+    }
+  }
+
+  if (Array.isArray(state.products) && state.products.length > 0) {
+    select.innerHTML = state.products
+      .map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)} (${escapeHtml(p.category || 'Cheat')})</option>`)
+      .join('');
+    updateBulkPlanOptions();
+  } else {
+    select.innerHTML = '<option value="">No products available</option>';
+  }
 }
 
 function setBulkRedeemType(type) {
@@ -4013,5 +4011,7 @@ window.copyRedeemCode = copyRedeemCode;
 window.deleteRedeemCode = deleteRedeemCode;
 window.toggleRedeemCodeActive = toggleRedeemCodeActive;
 window.openClaimedByModal = openClaimedByModal;
+window.populateRedeemModalProducts = populateRedeemModalProducts;
+window.populateBulkModalProducts = populateBulkModalProducts;
 
 

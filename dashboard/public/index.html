@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20261021_v6">
 </head>
 <body>
   <!-- ============================================== -->
@@ -2077,6 +2077,39 @@
   <!-- Toast Notification Container -->
   <div id="toastContainer" class="toast-container"></div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=20261021_v6"></script>
+  <script>
+    // Inline resilient modal openers that work immediately even before or during script load
+    function openNewRedeemModal() {
+      var modal = document.getElementById('redeemModal');
+      if (modal) {
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+      }
+      if (typeof populateRedeemModalProducts === 'function') {
+        populateRedeemModalProducts();
+      }
+    }
+    function openBulkRedeemModal() {
+      var modal = document.getElementById('bulkRedeemModal');
+      if (modal) {
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+      }
+      if (typeof populateBulkModalProducts === 'function') {
+        populateBulkModalProducts();
+      }
+    }
+    function closeModal(id) {
+      var modal = document.getElementById(id);
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+      }
+    }
+    window.openNewRedeemModal = openNewRedeemModal;
+    window.openBulkRedeemModal = openBulkRedeemModal;
+    window.closeModal = closeModal;
+  </script>
 </body>
 </html>
