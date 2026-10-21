@@ -770,10 +770,10 @@ function renderRecentOrdersTable(orders) {
 function formatMultiPriceBadge(plan) {
   if (!plan) return '—';
   const inr = Number(plan.priceInr || plan.price || 0);
-  const rates = state.settings?.currencyRates || { INR: 1, BDT: 1.4, USD: 0.012 };
-  const bdt = plan.priceBdt !== undefined && plan.priceBdt !== null ? plan.priceBdt : Math.round(inr * (rates.BDT || 1.4));
+  const rates = state.settings?.currencyRates || { INR: 1, USD: 0.012, NPR: 1.6 };
   const usd = plan.priceUsd !== undefined && plan.priceUsd !== null ? plan.priceUsd : Math.round(inr * (rates.USD || 0.012) * 100) / 100;
-  return `<span style="color:#00e5ff;font-weight:700;">₹${inr}</span> <span style="opacity:0.4;">|</span> <span style="color:#10b981;font-weight:700;">৳${bdt}</span> <span style="opacity:0.4;">|</span> <span style="color:#a855f7;font-weight:700;">$${usd}</span>`;
+  const npr = plan.priceNpr !== undefined && plan.priceNpr !== null ? plan.priceNpr : Math.round(inr * (rates.NPR || 1.6));
+  return `<span style="color:#00e5ff;font-weight:700;">₹${inr}</span> <span style="opacity:0.4;">|</span> <span style="color:#10b981;font-weight:700;">रू${npr}</span> <span style="opacity:0.4;">|</span> <span style="color:#a855f7;font-weight:700;">$${usd}</span>`;
 }
 
 function renderOverviewCheatMatrix() {
@@ -1187,7 +1187,7 @@ function renderPaymentMethodsList(methods) {
 
   container.innerHTML = entries.map(([key, m]) => {
     const isEnabled = m.enabled !== false;
-    const emoji = m.emoji || (key === 'upi' ? '📱' : key === 'bkash' ? '🇧🇩' : key === 'credit' ? '💳' : key === 'crypto' ? '🪙' : key === 'paypal' ? '🅿️' : '💳');
+    const emoji = m.emoji || (key === 'upi' ? '🇮🇳' : key === 'esewa' ? '🇳🇵' : key === 'binance' ? '🌐' : key === 'credit' ? '💳' : key === 'crypto' ? '🪙' : key === 'paypal' ? '🅿️' : '💳');
     const name = m.name || key.toUpperCase();
     const currency = m.currency || 'INR';
     const account = m.number || m.upiId || m.paymentLink || '';
@@ -2522,7 +2522,6 @@ function renderCurrenciesTable(currencies, defaultCurrency) {
     currencies = [
       { code: 'USD', name: 'US Dollar', symbol: '$', flag: '🇺🇸', rate: 0.012 },
       { code: 'INR', name: 'Indian Rupee', symbol: '₹', flag: '🇮🇳', rate: 1.0 },
-      { code: 'BDT', name: 'Bangladeshi Taka', symbol: '৳', flag: '🇧🇩', rate: 1.4 },
       { code: 'NPR', name: 'Nepalese Rupee', symbol: 'रू', flag: '🇳🇵', rate: 1.6 }
     ];
   }
@@ -2697,7 +2696,6 @@ function updateCurrencyCalcPreview() {
   const currencies = state.settings?.currencies || [
     { code: 'USD', name: 'US Dollar', symbol: '$', flag: '🇺🇸', rate: 0.012 },
     { code: 'INR', name: 'Indian Rupee', symbol: '₹', flag: '🇮🇳', rate: 1.0 },
-    { code: 'BDT', name: 'Bangladeshi Taka', symbol: '৳', flag: '🇧🇩', rate: 1.4 },
     { code: 'NPR', name: 'Nepalese Rupee', symbol: 'रू', flag: '🇳🇵', rate: 1.6 }
   ];
 

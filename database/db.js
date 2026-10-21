@@ -296,7 +296,7 @@ const DEFAULT_WEBSITE_CONFIG = {
     {
       icon: '💳',
       title: 'Universal Multi-Currency Pay',
-      description: 'Pay easily with UPI (PhonePe, GPay, Paytm), QR Code, bKash, Crypto (USDT, LTC, BTC), Cards, or PayPal.'
+      description: 'Pay easily with UPI (PhonePe, GPay, Paytm) for India, eSewa for Nepal, and Binance Pay (USDT) for International.'
     },
     {
       icon: '🔄',
@@ -358,7 +358,7 @@ const DEFAULT_WEBSITE_CONFIG = {
     },
     {
       q: 'Which payment methods are accepted?',
-      a: 'We accept UPI (Google Pay, PhonePe, Paytm, BHIM QR), bKash / Nagad, Cryptocurrency (USDT TRC20, LTC, Bitcoin), Credit/Debit Cards, and PayPal.'
+      a: 'We accept UPI (Google Pay, PhonePe, Paytm, BHIM QR) for India, eSewa for Nepal, and Binance Pay / USDT for International.'
     },
     {
       q: 'What if I need help setting up?',
@@ -400,44 +400,43 @@ const DEFAULT_SETTINGS = {
   currencies: [
     { code: 'USD', name: 'US Dollar', symbol: '$', flag: '🇺🇸', rate: 0.012 },
     { code: 'INR', name: 'Indian Rupee', symbol: '₹', flag: '🇮🇳', rate: 1.0 },
-    { code: 'BDT', name: 'Bangladeshi Taka', symbol: '৳', flag: '🇧🇩', rate: 1.4 },
     { code: 'NPR', name: 'Nepali Rupee', symbol: 'रू', flag: '🇳🇵', rate: 1.6 }
   ],
   currencyRates: {
     USD: 0.012,
     INR: 1,
-    BDT: 1.4,
     NPR: 1.6
   },
   paymentMethods: {
+    esewa: {
+      enabled: true,
+      name: 'eSewa (Nepal)',
+      emoji: '🇳🇵',
+      currency: 'NPR',
+      number: '9826866639',
+      payeeName: 'Manish Kumar Yadav',
+      qrCodeUrl: 'assets/qr/esewa_nepal.png',
+      details: '🇳🇵 **eSewa ID / Number:** `9826866639`\n👤 **Account Holder:** Manish Kumar Yadav\n📱 eSewa App se niche diya QR Code scan karein ya direct \'Send Money\' karein.\nPayment complete hone ke baad Transaction Code / Screenshot upload karein.'
+    },
     upi: {
       enabled: true,
-      name: 'UPI / QR Code',
-      upiId: 'milindy783@okaxis',
-      payeeName: 'White X Store',
-      details: 'GPay / PhonePe / Paytm se niche diya QR Code Scan karke Pay karein!\nPayment hone ke baad niche Submit UTR / Payment Proof button pe click karein.'
+      name: 'UPI / QR Code (India)',
+      emoji: '🇮🇳',
+      currency: 'INR',
+      upiId: '9353351285@kotakbank',
+      payeeName: 'OM YADAV',
+      qrCodeUrl: 'assets/qr/upi_india.png',
+      details: '🇮🇳 **UPI ID:** `9353351285@kotakbank`\n👤 **Payee Name:** OM YADAV\n📱 Google Pay / PhonePe / Paytm / BHIM se niche diya QR Code scan karke Pay karein.\nPayment hone ke baad 12-digit UTR Number ya screenshot bhejein.'
     },
-    bkash: {
+    binance: {
       enabled: true,
-      name: 'bKash / Nagad (BDT)',
-      number: '01XXXXXXXXX',
-      details: '🇧🇩 **bKash / Nagad (Personal)**: `01XXXXXXXXX` (Send Money)\nPayment complete hone ke baad TrxID / Screenshot submit karein.'
-    },
-    credit: {
-      enabled: true,
-      name: 'Credit / Debit Card',
-      paymentLink: 'https://buy.stripe.com/card_checkout',
-      details: 'Pay securely using any Credit or Debit Card (Visa, MasterCard, RuPay, Amex).\nPayment complete hone ke baad UTR / Reference ID submit karein.'
-    },
-    crypto: {
-      enabled: true,
-      name: 'Cryptocurrency',
-      details: 'USDT (TRC20): TYourWalletAddressHere\nLTC: LYourLtcAddressHere\nBTC: bc1YourBtcAddressHere'
-    },
-    paypal: {
-      enabled: true,
-      name: 'PayPal',
-      details: 'PayPal: https://paypal.me/yourusername\nPlease send as Friends & Family only!'
+      name: 'USD / International Payment (Binance Pay)',
+      emoji: '🌐',
+      currency: 'USD',
+      number: 'User-7bad1',
+      paymentLink: 'https://app.binance.com/uni-qr/TYyJ4S9Z',
+      qrCodeUrl: 'assets/qr/binance_international.png',
+      details: '🌐 **Binance Pay Link:** https://app.binance.com/uni-qr/TYyJ4S9Z\n👤 **Binance Pay ID / User:** `User-7bad1`\n🪙 Binance App se QR Code scan karein ya Pay Link se USDT send karein.\nPayment ke baad Order ID / Payment Screenshot submit karein.'
     }
   },
   apiConnections: {},
@@ -593,7 +592,6 @@ class Database {
     return [
       { code: 'USD', name: 'US Dollar', symbol: '$', flag: '🇺🇸', rate: Number(rates.USD) || 0.012 },
       { code: 'INR', name: 'Indian Rupee', symbol: '₹', flag: '🇮🇳', rate: Number(rates.INR) || 1.0 },
-      { code: 'BDT', name: 'Bangladeshi Taka', symbol: '৳', flag: '🇧🇩', rate: Number(rates.BDT) || 1.4 },
       { code: 'NPR', name: 'Nepali Rupee', symbol: 'रू', flag: '🇳🇵', rate: Number(rates.NPR) || 1.6 }
     ];
   }
@@ -694,8 +692,8 @@ class Database {
     const curObj = currencies.find(c => c.code === curr);
 
     const rate = curObj ? Number(curObj.rate) : (Number(this.getCurrencyRates()[curr]) || 1);
-    const symbol = curObj ? curObj.symbol : (curr === 'USD' ? '$' : (curr === 'BDT' ? '৳' : (curr === 'NPR' ? 'रू' : '₹')));
-    const flag = curObj ? curObj.flag : (curr === 'USD' ? '🇺🇸' : (curr === 'BDT' ? '🇧🇩' : (curr === 'NPR' ? '🇳🇵' : '🇮🇳')));
+    const symbol = curObj ? curObj.symbol : (curr === 'USD' ? '$' : (curr === 'NPR' ? 'रू' : '₹'));
+    const flag = curObj ? curObj.flag : (curr === 'USD' ? '🇺🇸' : (curr === 'NPR' ? '🇳🇵' : '🇮🇳'));
     const name = curObj ? curObj.name : curr;
 
     let amount;
@@ -722,13 +720,9 @@ class Database {
   }
 
   getPlanMultiPrices(plan) {
-    if (!plan) return { inr: 0, bdt: 0, usd: 0, npr: 0 };
+    if (!plan) return { inr: 0, usd: 0, npr: 0 };
     const rates = this.getCurrencyRates();
     const inr = Number(plan.priceInr || plan.price || 0);
-    const bdt =
-      plan.priceBdt !== undefined && plan.priceBdt !== null
-        ? Number(plan.priceBdt)
-        : Math.round(inr * (rates.BDT || 1.4));
     const usd =
       plan.priceUsd !== undefined && plan.priceUsd !== null
         ? Number(plan.priceUsd)
@@ -737,7 +731,7 @@ class Database {
       plan.priceNpr !== undefined && plan.priceNpr !== null
         ? Number(plan.priceNpr)
         : Math.round(inr * (rates.NPR || 1.6));
-    return { inr, bdt, usd, npr };
+    return { inr, usd, npr };
   }
 
   formatPlanPriceList(plan, targetCurrency = null) {
@@ -745,8 +739,8 @@ class Database {
       const conv = this.convertCurrency(plan.price, targetCurrency);
       return `${conv.flag} **${conv.formatted}**`;
     }
-    const { inr, bdt, usd, npr } = this.getPlanMultiPrices(plan);
-    return `🇮🇳 **₹${inr.toLocaleString()} INR**  •  🇧🇩 **৳${bdt.toLocaleString()} BDT**  •  🇺🇸 **$${usd} USD**  •  🇳🇵 **रू${npr.toLocaleString()} NPR**`;
+    const { inr, usd, npr } = this.getPlanMultiPrices(plan);
+    return `🇮🇳 **₹${inr.toLocaleString()} INR**  •  🇳🇵 **रू${npr.toLocaleString()} NPR**  •  🇺🇸 **$${usd} USD**`;
   }
 
   formatPlanPriceCompact(plan, targetCurrency = null) {
@@ -754,8 +748,8 @@ class Database {
       const conv = this.convertCurrency(plan.price, targetCurrency);
       return conv.formatted;
     }
-    const { inr, bdt, usd, npr } = this.getPlanMultiPrices(plan);
-    return `₹${inr} | ৳${bdt} | $${usd} | रू${npr}`;
+    const { inr, usd, npr } = this.getPlanMultiPrices(plan);
+    return `₹${inr} | रू${npr} | $${usd}`;
   }
 
   formatPlanPriceUsdOnly(plan) {
@@ -796,10 +790,9 @@ class Database {
     }
     const rates = this.getCurrencyRates();
     const inr = Number(order.amount || 0);
-    const bdt = Math.round(inr * (rates.BDT || 1.4));
     const usd = Math.round(inr * (rates.USD || 0.012) * 100) / 100;
     const npr = Math.round(inr * (rates.NPR || 1.6));
-    return `🇮🇳 **₹${inr.toLocaleString()} INR**  •  🇧🇩 **৳${bdt.toLocaleString()} BDT**  •  🇺🇸 **$${usd} USD**  •  🇳🇵 **रू${npr.toLocaleString()} NPR**`;
+    return `🇮🇳 **₹${inr.toLocaleString()} INR**  •  🇳🇵 **रू${npr.toLocaleString()} NPR**  •  🇺🇸 **$${usd} USD**`;
   }
 
   setCustomPlan(id, planKey, label, price, currency, durationDays) {

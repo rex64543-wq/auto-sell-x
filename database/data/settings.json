@@ -39,13 +39,6 @@
       "rate": 1
     },
     {
-      "code": "BDT",
-      "name": "Bangladeshi Taka",
-      "symbol": "৳",
-      "flag": "🇧🇩",
-      "rate": 1.4
-    },
-    {
       "code": "NPR",
       "name": "Nepali Rupee",
       "symbol": "रू",
@@ -56,7 +49,6 @@
   "currencyRates": {
     "USD": 0.012,
     "INR": 1,
-    "BDT": 1.4,
     "NPR": 1.6
   },
   "paymentMethods": {
@@ -167,7 +159,7 @@
       {
         "icon": "💳",
         "title": "Universal Multi-Currency Pay",
-        "description": "Pay easily with UPI (PhonePe, GPay, Paytm), QR Code, bKash, Crypto (USDT, LTC, BTC), Cards, or PayPal."
+        "description": "Pay easily with UPI (PhonePe, GPay, Paytm) for India, eSewa for Nepal, and Binance Pay (USDT) for International."
       },
       {
         "icon": "🔄",
@@ -229,7 +221,7 @@
       },
       {
         "q": "Which payment methods are accepted?",
-        "a": "We accept UPI (Google Pay, PhonePe, Paytm, BHIM QR), bKash / Nagad, Cryptocurrency (USDT TRC20, LTC, Bitcoin), Credit/Debit Cards, and PayPal."
+        "a": "We accept UPI (Google Pay, PhonePe, Paytm, BHIM QR) for India, eSewa for Nepal, and Binance Pay / USDT for International."
       },
       {
         "q": "What if I need help setting up?",

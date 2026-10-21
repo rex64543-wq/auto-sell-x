@@ -11,7 +11,7 @@ module.exports = {
     .addSubcommand(sub =>
       sub
         .setName('convert')
-        .setDescription('Convert an amount between store currencies (e.g. INR to NPR, USD to BDT)')
+        .setDescription('Convert an amount between store currencies (e.g. INR to NPR, NPR to USD)')
         .addNumberOption(opt =>
           opt
             .setName('amount')
@@ -28,7 +28,7 @@ module.exports = {
         .addStringOption(opt =>
           opt
             .setName('to')
-            .setDescription('Target currency code (e.g. NPR, USD, BDT, INR or ALL)')
+            .setDescription('Target currency code (e.g. NPR, USD, INR or ALL)')
             .setRequired(false)
         )
     )
@@ -44,7 +44,7 @@ module.exports = {
         .addStringOption(opt =>
           opt
             .setName('currency')
-            .setDescription('Currency code (e.g. USD, INR, NPR, BDT)')
+            .setDescription('Currency code (e.g. USD, INR, NPR)')
             .setRequired(true)
         )
     )

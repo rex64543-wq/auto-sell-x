@@ -327,7 +327,6 @@ class PurchaseFlow {
     const allConvs = db.getAllCurrencyConversions(inrAmount);
 
     const rates = db.getCurrencyRates();
-    const bdtAmount = Math.round(inrAmount * (rates.BDT || 1.4));
     const usdAmount = (inrAmount * (rates.USD || 0.012)).toFixed(2);
     const nprAmount = Math.round(inrAmount * (rates.NPR || 1.6));
 
@@ -363,7 +362,6 @@ class PurchaseFlow {
         if (key === 'upi') icon = '🇮🇳';
         else if (key === 'esewa') icon = '🇳🇵';
         else if (key === 'binance') icon = '🌐';
-        else if (key === 'bkash') icon = '🇧🇩';
         else if (key === 'credit') icon = '💳';
         else if (key === 'crypto') icon = '🪙';
         else if (key === 'paypal') icon = '🅿️';
@@ -375,7 +373,6 @@ class PurchaseFlow {
       if (key === 'upi') desc = `Pay ₹${inrAmount} INR via UPI QR (9353351285@kotakbank)`;
       else if (key === 'esewa') desc = `Pay रू${nprAmount} NPR via eSewa (9826866639)`;
       else if (key === 'binance') desc = `Pay $${usdAmount} USDT via Binance Pay (User-7bad1)`;
-      else if (key === 'bkash') desc = `Pay ৳${bdtAmount} BDT via bKash / Nagad Personal`;
       else if (key === 'credit') desc = `Instant Card Gateway ($${usdAmount} USD / ₹${inrAmount} INR)`;
       else if (key === 'crypto') desc = `Pay with USDT TRC20, LTC, or BTC ($${usdAmount} USD)`;
       else if (key === 'paypal') desc = `Pay via PayPal Friends & Family ($${usdAmount} USD)`;
