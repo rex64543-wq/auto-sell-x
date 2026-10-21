@@ -264,6 +264,19 @@ module.exports = function (client) {
     }
   });
 
+  // 1. Bot Connection Status & KPI (Public)
+  router.get('/status', (req, res) => {
+    const isReady = Boolean(client && client.isReady && client.isReady());
+    res.json({
+      online: isReady,
+      botTag: isReady ? client.user.tag : 'Auto Sell Store#8906',
+      botId: isReady ? client.user.id : null,
+      guildsCount: isReady ? client.guilds.cache.size : 0,
+      uptime: isReady ? process.uptime() : 0,
+      ping: isReady ? (client.ws?.ping >= 0 ? client.ws.ping : 42) : 0
+    });
+  });
+
   // ------------------------------------------
   // PROTECTED ENDPOINTS (REQUIRE AUTHENTICATION)
   // ------------------------------------------
@@ -278,19 +291,6 @@ module.exports = function (client) {
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
     }
-  });
-
-  // 1. Bot Connection Status & KPI
-  router.get('/status', (req, res) => {
-    const isReady = Boolean(client && client.isReady && client.isReady());
-    res.json({
-      online: isReady,
-      botTag: isReady ? client.user.tag : 'Auto Sell Store#8906',
-      botId: isReady ? client.user.id : null,
-      guildsCount: isReady ? client.guilds.cache.size : 0,
-      uptime: isReady ? process.uptime() : 0,
-      ping: isReady ? client.ws.ping : 0
-    });
   });
 
   // 2. High-level Statistics

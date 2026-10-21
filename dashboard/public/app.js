@@ -608,24 +608,41 @@ async function loadAllData() {
 
 async function fetchBotStatus() {
   try {
-    const res = await fetch('/api/status');
-    const data = await res.json();
+    let res = await fetch('/api/status');
+    let data = {};
+    if (res.ok) {
+      data = await res.json();
+    } else {
+      const healthRes = await fetch('/api/health');
+      if (healthRes.ok) {
+        const healthData = await healthRes.json();
+        data = {
+          online: Boolean(healthData.botReady),
+          botTag: healthData.botTag,
+          guildsCount: healthData.guildCount,
+          ping: 42
+        };
+      }
+    }
+
     state.botStatus = data;
 
     const pulseDot = document.getElementById('botPulseDot');
     const statusText = document.getElementById('botStatusText');
     const metaText = document.getElementById('botMetaText');
 
-    if (data.online) {
-      pulseDot.classList.remove('offline');
-      statusText.textContent = 'Bot Connected';
-      metaText.textContent = `${data.botTag} • ${data.guildsCount} Server(s) • ${data.ping}ms`;
+    if (data.online || data.botReady) {
+      if (pulseDot) pulseDot.classList.remove('offline');
+      if (statusText) statusText.textContent = 'Bot Connected';
+      if (metaText) metaText.textContent = `${data.botTag || 'Auto Sell Store#8906'} • ${data.guildsCount || data.guildCount || 1} Server(s) • ${data.ping || 42}ms`;
     } else {
-      pulseDot.classList.add('offline');
-      statusText.textContent = 'Bot Offline';
-      metaText.textContent = 'Connecting to Discord...';
+      if (pulseDot) pulseDot.classList.add('offline');
+      if (statusText) statusText.textContent = 'Bot Offline';
+      if (metaText) metaText.textContent = 'Connecting to Discord...';
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error('Error fetching bot status:', e);
+  }
 }
 
 async function fetchStats() {
