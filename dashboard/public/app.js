@@ -3074,17 +3074,17 @@ const LUXURY_DISCORD_TEMPLATE = `╭──────────────�
   *Your #1 Trusted Destination for Undetected Panels*
 ╰──────────────────────────────────────────╯
 
-> ⚡ **Instant Key Delivery** • 🛡️ **Anti-Ban Protected** • 💳 **Instant UPI / Cards / Wallet**
+> ⚡ **Instant Key Delivery** • 🛡️ **Anti-Ban Protected** • 💳 **Multi-Currency / Instant Checkout**
 
-### 🛒 𝗛𝗢𝗪 𝗧𝗢 𝗣𝗨𝗥𝗖𝗛𝗔𝗦𝗘 / 𝗞𝗔𝗜𝗦𝗘 𝗞𝗛𝗔𝗥𝗜𝗗𝗘𝗜𝗡:
+### 🛒 𝗛𝗢𝗪 𝗧𝗢 𝗣𝗨𝗥𝗖𝗛𝗔𝗦𝗘:
 **1️⃣ Select Your Cheat / Panel:**
-• Niche diye gaye Dropdown Menu (\`🛒 Select a Product / Panel...\`) se product choose karein.
+• Choose a product from the dropdown menu below (\`🛒 Select a Product / Panel...\`).
 
 **2️⃣ Review Features, Prices & Live Status:**
-• Product select karte hi aapko **Private Live Card** dikhega jisme live features aur 1D / 7D / 30D pricing show hogi.
+• Once selected, an interactive live card will display all features, anti-ban status, and duration pricing (1D / 7D / 30D).
 
 **3️⃣ Instant Payment & 0-Second Delivery:**
-• Apne pasandida plan pe click karein aur **UPI QR Code, Card, Crypto** ya **Wallet Balance** se pay karein. License key turant aapke DM mein deliver ho jayegi!
+• Select your preferred duration plan and complete payment via eSewa (Nepal), UPI (India), Binance Pay (USD), or your Wallet Balance. License key is delivered instantly to your DM!
 
 ──────────────────────────────────────────
 ### 🚦 𝗟𝗜𝗩𝗘 𝗦𝗧𝗔𝗧𝗨𝗦 𝗜𝗡𝗗𝗜𝗖𝗔𝗧𝗢𝗥𝗦:
@@ -3145,13 +3145,13 @@ async function loadDiscordDesignerData() {
   if (elDesc) elDesc.value = shop.description && shop.description.trim() ? shop.description : LUXURY_DISCORD_TEMPLATE;
 
   const elDeal = document.getElementById('dsDealInstructions');
-  if (elDeal) elDeal.value = deal.instructions || '1. Please confirm your order details above.\n2. Tap the 🤝 Make Deal / Pay Now button below when you are ready to make payment.\n3. The UPI QR Code & Payment options will unlock instantly in this channel!';
+  if (elDeal) elDeal.value = deal.instructions || '1. Please confirm your order details above.\n2. Tap the 🤝 Make Deal / Pay Now button below when you are ready to make payment.\n3. The QR Code & Payment options will unlock instantly in this channel!';
 
   const elUpi = document.getElementById('dsUpiInstructions');
-  if (elUpi) elUpi.value = pay.upiInstructions || '📱 GPay / PhonePe / Paytm se niche diya QR Code Scan karke Pay karein!\nPayment hone ke baad niche 📸 Upload Proof from Gallery ya UTR button pe click karein.';
+  if (elUpi) elUpi.value = pay.upiInstructions || '📱 Scan the QR Code below using Google Pay / PhonePe / Paytm / BHIM to complete payment!\nAfter payment, click 📸 Upload Proof from Gallery or submit your 12-digit UTR number below.';
 
   const elCard = document.getElementById('dsCardInstructions');
-  if (elCard) elCard.value = pay.cardInstructions || 'Pay securely with any Credit or Debit Card (Visa, MasterCard, RuPay, Amex).\nPayment complete hone ke baad UTR / Reference ID submit karein.';
+  if (elCard) elCard.value = pay.cardInstructions || 'Pay securely with your preferred payment gateway.\nAfter completing payment, submit your reference ID or payment screenshot.';
 
   const elChan = document.getElementById('dsTargetChannelId');
   if (elChan) elChan.value = s.shopChannelId || s.verificationChannelId || '';
@@ -3275,7 +3275,7 @@ function insertDesignerSnippet(snippetType) {
     const frame = `╭──────────────────────────────────────────╮\n  👑  **${storeName.toUpperCase()} — OFFICIAL MARKETPLACE**\n  *Your #1 Trusted Destination for Undetected Panels*\n╰──────────────────────────────────────────╯\n\n`;
     elDesc.value = frame + elDesc.value;
   } else if (snippetType === 'steps') {
-    const steps = `\n### 🛒 𝗛𝗢𝗪 𝗧𝗢 𝗣𝗨𝗥𝗖𝗛𝗔𝗦𝗘 / 𝗞𝗔𝗜𝗦𝗘 𝗞𝗛𝗔𝗥𝗜𝗗𝗘𝗜𝗡:\n**1️⃣ Select Your Cheat / Panel:** Niche diye gaye menu se product choose karein.\n**2️⃣ Review Features & Status:** Private Live Card mein features & duration pricing check karein.\n**3️⃣ 0-Second Delivery:** UPI / Card / Crypto / Wallet se pay karke key DM mein turant payein!\n\n`;
+    const steps = `\n### 🛒 𝗛𝗢𝗪 𝗧𝗢 𝗣𝗨𝗥𝗖𝗛𝗔𝗦𝗘:\n**1️⃣ Select Your Cheat / Panel:** Choose a product from the dropdown menu below.\n**2️⃣ Review Features & Status:** Inspect features, anti-cheat status, and duration pricing in the private card.\n**3️⃣ 0-Second Delivery:** Complete payment via eSewa, UPI, Binance Pay, or Wallet for instant key delivery in your DM!\n\n`;
     elDesc.value += steps;
   } else if (snippetType === 'status') {
     const status = `\n──────────────────────────────────────────\n### 🚦 𝗟𝗜𝗩𝗘 𝗦𝗧𝗔𝗧𝗨𝗦 𝗜𝗡𝗗𝗜𝗖𝗔𝗧𝗢𝗥𝗦:\n• 🟢 **Safe / Undetected** : Fully Working *(Safe for Main Account)*\n• 🟡 **Maintenance** : Under update *(Wait for announcement)*\n• 🔴 **Patched / Offline** : Detected *(Do NOT buy or use right now)*\n\n`;

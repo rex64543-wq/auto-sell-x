@@ -383,18 +383,18 @@ const DEFAULT_SETTINGS = {
   mode: 'direct', // 'direct' = No ticket channels created; all interactive checkout happens in-channel
   shopPage: {
     title: '⚡ 𝐖𝐇𝐈𝐓𝐄 𝐗 𝐒𝐓𝐎𝐑𝐄 — 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋 𝐂𝐀𝐓𝐀𝐋𝐎𝐆 ⚡',
-    description: '> ⚡ **Instant Key Delivery** • 🛡️ **Anti-Ban Protected** • 💳 **Instant UPI / Cards / Wallet**\n\n╭────────────────────────────────────────╮\n  👑 **WELCOME TO WHITE X STORE**\n  *Your #1 Trusted Destination for Undetected Panels & Cheats*\n╰────────────────────────────────────────╯\n\n### 🛒 𝗛𝗢𝗪 𝗧𝗢 𝗣𝗨𝗥𝗖𝗛𝗔𝗦𝗘 / 𝗞𝗔𝗜𝗦𝗘 𝗞𝗛𝗔𝗥𝗜𝗗𝗘𝗜𝗡:\n**1️⃣ Select Your Cheat / Panel:**\n• Niche diye gaye Dropdown Menu (`🛒 Select a Product / Panel...`) se product choose karein.\n\n**2️⃣ Review Features, Prices & Live Status:**\n• Product select karte hi aapko **Private Live Preview** dikhega jisme live features aur 1D / 7D / 30D pricing show hogi.\n\n**3️⃣ Instant Payment & 0-Second Delivery:**\n• Apne pasandida plan pe click karein aur **UPI QR Code, Card, Crypto** ya **Wallet Balance** se pay karein. License key turant aapke DM mein deliver ho jayegi!\n\n────────────────────────────────────────\n### 🚦 𝗟𝗜𝗩𝗘 𝗦𝗧𝗔𝗧𝗨𝗦 𝗜𝗡𝗗𝗜𝗖𝗔𝗧𝗢𝗥𝗦:\n• 🟢 **Safe 🟢** : Fully Working & Undetected *(Safe for Main Account)*\n• 🟡 **Maintenance 🟡** : Under update *(Wait for announcement)*\n• 🔴 **Patched 🔴** : Offline / Detected *(Do NOT buy or use right now)*\n\n────────────────────────────────────────\n### 💳 𝗪𝗔𝗟𝗟𝗘𝗧 & 𝟭-𝗦𝗘𝗖𝗢𝗡𝗗 𝗖𝗛𝗘𝗖𝗞𝗢𝗨𝗧:\n• Click **`💳 My Wallet`** below to check your current funds anytime.\n• Click **`➕ Add Balance / Top-up`** to deposit funds and checkout with 1-click!',
+    description: '> ⚡ **Instant Key Delivery** • 🛡️ **Anti-Ban Protected** • 💳 **Multi-Currency / Instant Checkout**\n\n╭────────────────────────────────────────╮\n  👑 **WELCOME TO WHITE X STORE**\n  *Your #1 Trusted Destination for Undetected Panels & Cheats*\n╰────────────────────────────────────────╯\n\n### 🛒 𝗛𝗢𝗪 𝗧𝗢 𝗣𝗨𝗥𝗖𝗛𝗔𝗦𝗘:\n**1️⃣ Select Your Cheat / Panel:**\n• Choose a product from the dropdown menu below (`🛒 Select a Product / Panel...`).\n\n**2️⃣ Review Features, Prices & Live Status:**\n• Once selected, an interactive live card will display all features, anti-ban status, and duration pricing (1D / 7D / 30D).\n\n**3️⃣ Instant Payment & 0-Second Delivery:**\n• Select your preferred duration plan and complete payment via **eSewa (Nepal)**, **UPI QR (India)**, **Binance Pay (International USD)**, or your **Wallet Balance**. Your license key will be delivered instantly to your DM!\n\n────────────────────────────────────────\n### 🚦 𝗟𝗜𝗩𝗘 𝗦𝗧𝗔𝗧𝗨𝗦 𝗜𝗡𝗗𝗜𝗖𝗔𝗧𝗢𝗥𝗦:\n• 🟢 **Safe 🟢** : Fully Working & Undetected *(Safe for Main Account)*\n• 🟡 **Maintenance 🟡** : Under update *(Wait for announcement)*\n• 🔴 **Patched 🔴** : Offline / Detected *(Do NOT buy or use right now)*\n\n────────────────────────────────────────\n### 💳 𝗪𝗔𝗟𝗟𝗘𝗧 & 𝟭-𝗦𝗘𝗖𝗢𝗡𝗗 𝗖𝗛𝗘𝗖𝗞𝗢𝗨𝗧:\n• Click **`💳 My Wallet`** below to check your current funds anytime.\n• Click **`➕ Add Balance / Top-up`** to deposit funds and checkout with 1-click!',
     bannerUrl: 'https://i.imgur.com/8Qe87dE.png',
     thumbnailUrl: 'https://i.imgur.com/8Qe87dE.png',
     color: '#00d2ff',
     footer: 'White X Store • Select a product below to start • 24/7 Automated Delivery'
   },
   dealPage: {
-    instructions: '1. Please confirm your order details above.\n2. Tap the **🤝 Make Deal / Pay Now** button below when you are ready to make payment.\n3. The UPI QR Code & Payment options will unlock instantly in this channel!'
+    instructions: '1. Please confirm your order details above.\n2. Tap the **🤝 Make Deal / Pay Now** button below when you are ready to make payment.\n3. The QR Code & Payment options will unlock instantly in this channel!'
   },
   paymentPage: {
-    upiInstructions: '📱 **GPay / PhonePe / Paytm se niche diya QR Code Scan karke Pay karein!**\nPayment hone ke baad niche **📸 Upload Proof from Gallery** ya UTR button pe click karein.',
-    cardInstructions: 'Pay securely using any Credit or Debit Card (Visa, MasterCard, RuPay, Amex).\nPayment complete hone ke baad UTR / Reference ID submit karein.'
+    upiInstructions: '📱 **Scan the QR Code below using Google Pay / PhonePe / Paytm / BHIM to complete payment!**\nAfter payment, click **📸 Upload Proof from Gallery** or submit your 12-digit UTR number below.',
+    cardInstructions: 'Pay securely using your preferred payment gateway.\nAfter completing payment, submit your reference ID or payment screenshot.'
   },
   defaultCurrency: 'USD',
   currencies: [
@@ -416,7 +416,7 @@ const DEFAULT_SETTINGS = {
       number: '9826866639',
       payeeName: 'Manish Kumar Yadav',
       qrCodeUrl: 'assets/qr/esewa_nepal.png',
-      details: '🇳🇵 **eSewa ID / Number:** `9826866639`\n👤 **Account Holder:** Manish Kumar Yadav\n📱 eSewa App se niche diya QR Code scan karein ya direct \'Send Money\' karein.\nPayment complete hone ke baad Transaction Code / Screenshot upload karein.'
+      details: '🇳🇵 **eSewa ID / Number:** `9826866639`\n👤 **Account Holder:** Manish Kumar Yadav\n📱 Scan the QR Code below using the eSewa App or use direct Send Money.\nAfter completing payment, submit your Transaction Code or payment screenshot.'
     },
     upi: {
       enabled: true,
@@ -426,7 +426,7 @@ const DEFAULT_SETTINGS = {
       upiId: '9353351285@kotakbank',
       payeeName: 'OM YADAV',
       qrCodeUrl: 'assets/qr/upi_india.png',
-      details: '🇮🇳 **UPI ID:** `9353351285@kotakbank`\n👤 **Payee Name:** OM YADAV\n📱 Google Pay / PhonePe / Paytm / BHIM se niche diya QR Code scan karke Pay karein.\nPayment hone ke baad 12-digit UTR Number ya screenshot bhejein.'
+      details: '🇮🇳 **UPI ID:** `9353351285@kotakbank`\n👤 **Payee Name:** OM YADAV\n📱 Scan the QR Code below using Google Pay / PhonePe / Paytm / BHIM to pay.\nAfter payment, submit your 12-digit UTR Number or payment screenshot.'
     },
     binance: {
       enabled: true,
@@ -436,7 +436,7 @@ const DEFAULT_SETTINGS = {
       number: 'User-7bad1',
       paymentLink: 'https://app.binance.com/uni-qr/TYyJ4S9Z',
       qrCodeUrl: 'assets/qr/binance_international.png',
-      details: '🌐 **Binance Pay Link:** https://app.binance.com/uni-qr/TYyJ4S9Z\n👤 **Binance Pay ID / User:** `User-7bad1`\n🪙 Binance App se QR Code scan karein ya Pay Link se USDT send karein.\nPayment ke baad Order ID / Payment Screenshot submit karein.'
+      details: '🌐 **Binance Pay Link:** https://app.binance.com/uni-qr/TYyJ4S9Z\n👤 **Binance Pay ID / User:** `User-7bad1`\n🪙 Scan the QR Code using the Binance App or send USDT via the Pay Link.\nAfter completing payment, submit your Order ID or payment screenshot.'
     }
   },
   apiConnections: {},

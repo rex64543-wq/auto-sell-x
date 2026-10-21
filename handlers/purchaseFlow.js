@@ -200,7 +200,7 @@ class PurchaseFlow {
         `──────────────────────────────────────────\n` +
         `💰 **AVAILABLE DURATION PLANS ${previewCurrency && previewCurrency !== 'ALL' ? `(${previewCurrency})` : '(MULTI-CURRENCY)'}:**\n` +
         `${plansText}\n` +
-        `👇 *Niche diye gaye dropdown se duration plan select karein aur checkout karein!*`
+        `👇 *Select a duration plan from the dropdown menu below to proceed to checkout!*`
       )
       .setFooter({
         text: `${storeName} • 24/7 Automated Delivery • Status: ${statusText}`
@@ -486,11 +486,11 @@ class PurchaseFlow {
           `• **Account Holder:** \`${payeeName}\`\n` +
           `• **Total Due:** **${exactDueNpr}**\n\n` +
           `⚡ **HOW TO GET YOUR KEY:**\n` +
-          `1️⃣ Niche diye gaye **eSewa QR Code** ko eSewa App se scan karein ya direct Send Money karein.\n` +
-          `2️⃣ Exact Amount **${exactDueNpr}** send karein.\n` +
-          `3️⃣ Payment complete hone ke baad Transaction Code copy karein ya screenshot lein.\n` +
-          `4️⃣ Niche **\`📸 Upload Proof\`** ya **\`✍️ Submit Payment Proof\`** button par click karein!\n\n` +
-          `📌 *Payment verify hote hi aapka license key aur loader DM mein turant mil jayega.*`
+          `1️⃣ Scan the **eSewa QR Code** above using your eSewa App or use direct Send Money.\n` +
+          `2️⃣ Send the exact amount: **${exactDueNpr}**.\n` +
+          `3️⃣ After completing payment, copy the Transaction Code or save your payment screenshot.\n` +
+          `4️⃣ Click **\`📸 Upload Proof\`** or **\`✍️ Submit Payment Proof\`** below!\n\n` +
+          `📌 *Once verified, your license key and setup guide will be delivered directly to your DM.*`
         )
         .setFooter({ text: `${storeName} • Order #${order.id} • Nepal (eSewa) Gateway` })
         .setTimestamp();
@@ -524,10 +524,10 @@ class PurchaseFlow {
           `• **Payee Name:** \`${payeeName}\`\n` +
           `• **Total Due:** **₹${order.amount} INR**\n\n` +
           `⚡ **HOW TO GET YOUR KEY:**\n` +
-          `1️⃣ Niche diye QR Code ko Google Pay / PhonePe / Paytm / BHIM se scan karein.\n` +
-          `2️⃣ Payment complete hone ke baad 12-digit UTR / Reference ID copy karein ya screenshot lein.\n` +
-          `3️⃣ Niche **\`📸 Upload Proof\`** ya **\`✍️ Submit Payment Proof\`** button par click karein!\n\n` +
-          `📌 *12-digit UTR submit karte hi verification ke baad license key turant deliver hogi.*`
+          `1️⃣ Scan the QR code above using Google Pay, PhonePe, Paytm, or BHIM.\n` +
+          `2️⃣ After completing payment, copy the 12-digit UTR / Reference ID or save your screenshot.\n` +
+          `3️⃣ Click **\`📸 Upload Proof\`** or **\`✍️ Submit Payment Proof\`** below!\n\n` +
+          `📌 *Your 12-digit UTR will be verified and your license key delivered automatically.*`
         )
         .setFooter({ text: `${storeName} • Order #${order.id} • India (UPI) Gateway` })
         .setTimestamp();
@@ -558,10 +558,10 @@ class PurchaseFlow {
           `• **Direct Pay Link:** [Click Here to Pay with Binance](${payLink})\n` +
           `• **Amount Due:** **$${usdAmount} USDT / USD**\n\n` +
           `⚡ **HOW TO GET YOUR KEY:**\n` +
-          `1️⃣ Binance App open karke **Scan** option se niche diya QR Code scan karein ya upar diye Link par click karein.\n` +
-          `2️⃣ Exact Amount **$${usdAmount} USDT** transfer karein.\n` +
-          `3️⃣ Payment hone ke baad Order ID copy karein ya screenshot lein.\n` +
-          `4️⃣ Niche **\`📸 Upload Proof\`** ya **\`✍️ Submit Payment Proof\`** button par click karein!\n\n` +
+          `1️⃣ Open the Binance app, scan the QR code above, or click the direct payment link.\n` +
+          `2️⃣ Transfer the exact amount: **$${usdAmount} USDT**.\n` +
+          `3️⃣ After completing payment, copy the Order ID or save your payment screenshot.\n` +
+          `4️⃣ Click **\`📸 Upload Proof\`** or **\`✍️ Submit Payment Proof\`** below!\n\n` +
           `📌 *Cryptocurrency payments are verified 24/7 with instant key delivery.*`
         )
         .setFooter({ text: `${storeName} • Order #${order.id} • International (Binance Pay) Gateway` })
@@ -587,7 +587,7 @@ class PurchaseFlow {
           (accountLine ? `📱 **Account / Details:** \`${accountLine}\`\n\n` : '') +
           `📋 **Payment Instructions:**\n` +
           `\`\`\`\n${details}\n\`\`\`\n` +
-          `📌 *Payment complete hone ke baad **✍️ Submit Payment Proof** pe click karein ya **📸 Upload Proof** se screenshot bhejein!*`
+          `📌 *After completing payment, click **✍️ Submit Payment Proof** or **📸 Upload Proof** to submit your screenshot!*`
         )
         .setFooter({ text: `Order #${order.id} | Selected: ${conv.currency} | ${methodName} Gateway` });
 
@@ -1310,11 +1310,11 @@ class PurchaseFlow {
       .setTitle(shopPage.title || '⚡ 𝐖𝐇𝐈𝐓𝐄 𝐗 𝐒𝐓𝐎𝐑𝐄 — 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋 𝐂𝐀𝐓𝐀𝐋𝐎𝐆 ⚡')
       .setDescription(
         shopPage.description ||
-          '> ⚡ **Instant Key Delivery** • 🛡️ **Anti-Ban Protected** • 💳 **Instant UPI / Cards / Wallet**\n\n' +
-          '### 🛒 𝗛𝗢𝗪 𝗧𝗢 𝗣𝗨𝗥𝗖𝗛𝗔𝗦𝗘 / 𝗞𝗔𝗜𝗦𝗘 𝗞𝗛𝗔𝗥𝗜𝗗𝗘𝗜𝗡:\n' +
+          '> ⚡ **Instant Key Delivery** • 🛡️ **Anti-Ban Protected** • 💳 **Multi-Currency / Instant Checkout**\n\n' +
+          '### 🛒 𝗛𝗢𝗪 𝗧𝗢 𝗣𝗨𝗥𝗖𝗛𝗔𝗦𝗘:\n' +
           '**1️⃣ Select Your Cheat:** Choose your desired panel from the dropdown menu below.\n' +
           '**2️⃣ Review Features & Status:** Inspect live pricing & anti-cheat status in the private card.\n' +
-          '**3️⃣ 0-Second Delivery:** Pay via UPI QR, Cards, Crypto or Wallet for instant key delivery!'
+          '**3️⃣ 0-Second Delivery:** Complete payment via eSewa, UPI, Binance Pay, or Wallet for instant key delivery!'
       )
       .setFooter({
         text: shopPage.footer || `${storeName} • Select a product below to start • 24/7 Automated Delivery`

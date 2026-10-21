@@ -55,10 +55,10 @@ module.exports = {
       `  *Your #1 Trusted Destination for Undetected Panels*\n` +
       `╰──────────────────────────────────────────╯\n\n` +
       `> ⚡ **0s Instant Key Delivery** • 🛡️ **Kernel Anti-Ban** • 💳 **Multi-Currency**\n\n` +
-      `### 🛒 𝗛𝗢𝗪 𝗧𝗢 𝗣𝗨𝗥𝗖𝗛𝗔𝗦𝗘 / 𝗞𝗔𝗜𝗦𝗘 𝗞𝗛𝗔𝗥𝗜𝗗𝗘𝗜𝗡:\n` +
-      `**1️⃣ Select Your Cheat:** Niche diye gaye menu se product choose karein.\n` +
-      `**2️⃣ Review Features & Status:** Private Live Card mein live status aur duration prices dekhein.\n` +
-      `**3️⃣ 0-Second Delivery:** UPI QR, Card, Crypto ya Wallet se pay karke key DM mein turant payein!\n\n` +
+      `### 🛒 𝗛𝗢𝗪 𝗧𝗢 𝗣𝗨𝗥𝗖𝗛𝗔𝗦𝗘:\n` +
+      `**1️⃣ Select Your Cheat:** Choose a product from the dropdown menu below.\n` +
+      `**2️⃣ Review Features & Status:** View live panel features, anti-cheat status, and duration pricing.\n` +
+      `**3️⃣ Instant Automated Delivery:** Complete payment via eSewa, UPI, Binance Pay, or Wallet to receive your key immediately in DM!\n\n` +
       `──────────────────────────────────────────\n` +
       `### 🚦 𝗟𝗜𝗩𝗘 𝗦𝗧𝗔𝗧𝗨𝗦 𝗜𝗡𝗗𝗜𝗖𝗔𝗧𝗢𝗥𝗦:\n` +
       `• 🟢 **Safe / Undetected** : Fully Working *(Safe for Main Account)*\n` +
