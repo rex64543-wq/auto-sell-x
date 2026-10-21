@@ -6,8 +6,11 @@ const {
   StringSelectMenuBuilder,
   ModalBuilder,
   TextInputBuilder,
-  TextInputStyle
+  TextInputStyle,
+  AttachmentBuilder
 } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
 const db = require('../database/db');
 const adminVerifyFlow = require('./adminVerifyFlow');
 const licenseService = require('../services/licenseService');
@@ -23,6 +26,34 @@ function isValidHttpUrl(string) {
     return url.protocol === 'http:' || url.protocol === 'https:';
   } catch (_) {
     return false;
+  }
+}
+
+/**
+ * Helper to attach local QR image files or set remote image URLs
+ */
+function attachQrImage(qrUrlOrPath, embed, files) {
+  if (!qrUrlOrPath) return;
+  if (isValidHttpUrl(qrUrlOrPath)) {
+    embed.setImage(qrUrlOrPath);
+    return;
+  }
+
+  let resolvedPath = path.isAbsolute(qrUrlOrPath)
+    ? qrUrlOrPath
+    : path.join(__dirname, '..', qrUrlOrPath.replace(/^\/+/, ''));
+
+  if (!fs.existsSync(resolvedPath)) {
+    const inPublic = path.join(__dirname, '..', 'dashboard', 'public', qrUrlOrPath.replace(/^\/+/, ''));
+    if (fs.existsSync(inPublic)) resolvedPath = inPublic;
+  }
+
+  if (fs.existsSync(resolvedPath)) {
+    const ext = path.extname(resolvedPath).slice(1) || 'png';
+    const filename = `payment_qr_${Date.now()}.${ext}`;
+    const attachment = new AttachmentBuilder(resolvedPath, { name: filename });
+    embed.setImage(`attachment://${filename}`);
+    files.push(attachment);
   }
 }
 
@@ -320,7 +351,9 @@ class PurchaseFlow {
     for (const [key, pm] of enabledEntries) {
       let icon = pm.emoji;
       if (!icon) {
-        if (key === 'upi') icon = '📱';
+        if (key === 'upi') icon = '🇮🇳';
+        else if (key === 'esewa') icon = '🇳🇵';
+        else if (key === 'binance') icon = '🌐';
         else if (key === 'bkash') icon = '🇧🇩';
         else if (key === 'credit') icon = '💳';
         else if (key === 'crypto') icon = '🪙';
@@ -330,8 +363,10 @@ class PurchaseFlow {
       }
 
       let desc = '';
-      if (key === 'upi') desc = `Pay ₹${inrAmount} INR via PhonePe / GPay / Paytm QR`;
-      else if (key === 'bkash') desc = `Pay ৳${bdtAmount} BDT via bKash or Nagad Personal`;
+      if (key === 'upi') desc = `Pay ₹${inrAmount} INR via UPI QR (9353351285@kotakbank)`;
+      else if (key === 'esewa') desc = `Pay रू${nprAmount} NPR via eSewa (9826866639)`;
+      else if (key === 'binance') desc = `Pay $${usdAmount} USDT via Binance Pay (User-7bad1)`;
+      else if (key === 'bkash') desc = `Pay ৳${bdtAmount} BDT via bKash / Nagad Personal`;
       else if (key === 'credit') desc = `Instant Card Gateway ($${usdAmount} USD / ₹${inrAmount} INR)`;
       else if (key === 'crypto') desc = `Pay with USDT TRC20, LTC, or BTC ($${usdAmount} USD)`;
       else if (key === 'paypal') desc = `Pay via PayPal Friends & Family ($${usdAmount} USD)`;
@@ -359,7 +394,7 @@ class PurchaseFlow {
 
     const paymentSelectMenu = new StringSelectMenuBuilder()
       .setCustomId(`shop_select_payment_method_${order.id}`)
-      .setPlaceholder('💳 Choose Payment Method...')
+      .setPlaceholder('💳 Choose Payment Method (Nepal / India / International)...')
       .addOptions(selectOptions.slice(0, 25));
 
     const toggleRow = new ActionRowBuilder().addComponents(paymentSelectMenu);
@@ -413,6 +448,7 @@ class PurchaseFlow {
 
     const actionRow = new ActionRowBuilder().addComponents(actionButtons);
     const embed = new EmbedBuilder().setColor(isTopup ? 0x9b59b6 : 0x00d2ff);
+    const files = [];
 
     // Common Currency Exchange Block for Embed
     const currencyExchangeBlock =
@@ -420,28 +456,50 @@ class PurchaseFlow {
       `• **Selected Currency:** ${conv.flag} **${conv.name} (${conv.currency})**\n` +
       `• **Exchanged Total Due:** **${conv.symbol}${conv.amount.toLocaleString()} ${conv.currency}**\n\n`;
 
-    if (currentMethod === 'upi') {
+    if (currentMethod === 'esewa') {
+      // 🇳🇵 NEPAL (eSewa)
+      const esewaConfig = payments.esewa || {};
+      const esewaId = esewaConfig.number || esewaConfig.eSewaId || '9826866639';
+      const payeeName = esewaConfig.payeeName || 'Manish Kumar Yadav';
+      const exactDueNpr = conv.currency === 'NPR' ? `${conv.symbol}${conv.amount.toLocaleString()} NPR` : `रू${nprAmount} NPR`;
+
+      embed
+        .setTitle(`🇳🇵 eSEWA PAYMENT & QR CODE — Order #${order.id}`)
+        .setDescription(
+          `╭──────────────────────────────────────────╮\n` +
+          `  🧾  **ORDER PAYMENT & VERIFICATION**\n` +
+          `  *Order ID: #${order.id} • 0s Key Drop*\n` +
+          `╰──────────────────────────────────────────╯\n\n` +
+          `> 👤 **Buyer:** <@${order.userId}>\n` +
+          `> 📦 **Item:** \`${isTopup ? 'Wallet Top-up' : order.productName}\`\n` +
+          (isTopup ? '' : `> ⏱️ **Duration Plan:** \`${order.planDuration || '30 Days'}\`\n`) +
+          `> 💰 **Total Amount (NPR):** **${exactDueNpr}** *(Base: ₹${inrAmount} INR)*\n\n` +
+          currencyExchangeBlock +
+          `🇳🇵 **eSEWA PAYMENT DETAILS:**\n` +
+          `• **eSewa ID / Mobile:** \`${esewaId}\`\n` +
+          `• **Account Holder:** \`${payeeName}\`\n` +
+          `• **Total Due:** **${exactDueNpr}**\n\n` +
+          `⚡ **HOW TO GET YOUR KEY:**\n` +
+          `1️⃣ Niche diye gaye **eSewa QR Code** ko eSewa App se scan karein ya direct Send Money karein.\n` +
+          `2️⃣ Exact Amount **${exactDueNpr}** send karein.\n` +
+          `3️⃣ Payment complete hone ke baad Transaction Code copy karein ya screenshot lein.\n` +
+          `4️⃣ Niche **\`📸 Upload Proof\`** ya **\`✍️ Submit Payment Proof\`** button par click karein!\n\n` +
+          `📌 *Payment verify hote hi aapka license key aur loader DM mein turant mil jayega.*`
+        )
+        .setFooter({ text: `${storeName} • Order #${order.id} • Nepal (eSewa) Gateway` })
+        .setTimestamp();
+
+      attachQrImage(esewaConfig.qrCodeUrl || 'assets/qr/esewa_nepal.png', embed, files);
+
+    } else if (currentMethod === 'upi') {
+      // 🇮🇳 INDIA (UPI / QR Code)
       const upiConfig = payments.upi || {};
-      const upiId = upiConfig.upiId || 'milindy783@okaxis';
-      const payeeName = upiConfig.payeeName || storeName;
-
-      const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(
-        payeeName
-      )}&am=${order.amount}&cu=INR&tn=Order-${order.id}`;
-
-      const customQr = upiConfig.qrCodeUrl || upiConfig.qrCode;
-      const qrCodeApi = customQr || `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(
-        upiUrl
-      )}`;
+      const upiId = upiConfig.upiId || '9353351285@kotakbank';
+      const payeeName = upiConfig.payeeName || 'OM YADAV';
 
       const title = isTopup
         ? `💳 WALLET TOP-UP QR — Order #${order.id}`
-        : `💳 PAYMENT QR & CHECKOUT — Order #${order.id}`;
-
-      const instructions = isTopup
-        ? `Scan the QR code below to add **₹${order.amount}** to your Wallet!\nAfter paying, click **📸 Upload Proof (Bot DM / Pic Ticket)** or click **✍️ Submit Payment Proof**.`
-        : settings.paymentPage?.upiInstructions ||
-          '📱 **GPay / PhonePe / Paytm se niche diya QR Code Scan karke Pay karein!**\nPayment hone ke baad niche **📸 Upload Proof** ya **✍️ Submit Payment Proof** pe click karein.';
+        : `🇮🇳 UPI & QR CODE CHECKOUT — Order #${order.id}`;
 
       embed
         .setTitle(title)
@@ -457,86 +515,56 @@ class PurchaseFlow {
           currencyExchangeBlock +
           `📱 **UPI & QR CODE PAYMENT DETAILS:**\n` +
           `• **UPI ID:** \`${upiId}\`\n` +
-          `• **Payee Name:** \`${payeeName}\`\n\n` +
+          `• **Payee Name:** \`${payeeName}\`\n` +
+          `• **Total Due:** **₹${order.amount} INR**\n\n` +
           `⚡ **HOW TO GET YOUR KEY:**\n` +
-          `1️⃣ Niche diye QR Code ko Google Pay / PhonePe / Paytm se scan karein.\n` +
-          `2️⃣ Payment complete hone ke baad UTR / Reference ID copy karein ya screenshot lein.\n` +
+          `1️⃣ Niche diye QR Code ko Google Pay / PhonePe / Paytm / BHIM se scan karein.\n` +
+          `2️⃣ Payment complete hone ke baad 12-digit UTR / Reference ID copy karein ya screenshot lein.\n` +
           `3️⃣ Niche **\`📸 Upload Proof\`** ya **\`✍️ Submit Payment Proof\`** button par click karein!\n\n` +
-          `${instructions}`
+          `📌 *12-digit UTR submit karte hi verification ke baad license key turant deliver hogi.*`
         )
-        .setImage(qrCodeApi)
-        .setFooter({ text: `${storeName} • Order #${order.id} • 24/7 Automated Delivery` })
+        .setFooter({ text: `${storeName} • Order #${order.id} • India (UPI) Gateway` })
         .setTimestamp();
-    } else if (currentMethod === 'bkash') {
-      const bkashConfig = payments.bkash || {};
+
+      const customQr = upiConfig.qrCodeUrl || 'assets/qr/upi_india.png';
+      attachQrImage(customQr, embed, files);
+
+    } else if (currentMethod === 'binance') {
+      // 🌐 INTERNATIONAL (Binance Pay / Crypto)
+      const binanceConfig = payments.binance || {};
+      const payId = binanceConfig.number || 'User-7bad1';
+      const payLink = binanceConfig.paymentLink || 'https://app.binance.com/uni-qr/TYyJ4S9Z';
 
       embed
-        .setTitle(`🇧🇩 bKash / Nagad Checkout — Order #${order.id}`)
+        .setTitle(`🌐 BINANCE PAY (INTERNATIONAL) — Order #${order.id}`)
         .setDescription(
-          `Hello <@${order.userId}>! Pay securely using **bKash or Nagad**:\n\n` +
-          `• **Item:** ${isTopup ? '**Wallet Top-up**' : order.productName}\n` +
-          (isTopup ? '' : `• **Plan Duration:** \`${order.planDuration || '30 Days'}\`\n`) +
+          `╭──────────────────────────────────────────╮\n` +
+          `  🧾  **ORDER PAYMENT & VERIFICATION**\n` +
+          `  *Order ID: #${order.id} • 0s Key Drop*\n` +
+          `╰──────────────────────────────────────────╯\n\n` +
+          `> 👤 **Buyer:** <@${order.userId}>\n` +
+          `> 📦 **Item:** \`${isTopup ? 'Wallet Top-up' : order.productName}\`\n` +
+          (isTopup ? '' : `> ⏱️ **Duration Plan:** \`${order.planDuration || '30 Days'}\`\n`) +
+          `> 💰 **Total Amount (USD):** **$${usdAmount} USDT** *(Base: ₹${inrAmount} INR)*\n\n` +
           currencyExchangeBlock +
-          `• **Amount Due (BDT):** 🇧🇩 **৳${bdtAmount} BDT** *(Exchanged: ${conv.formatted})*\n\n` +
-          `📱 **Payment Instructions:**\n` +
-          `\`\`\`\n` +
-          `${bkashConfig.details || `bKash / Nagad Personal: ${bkashConfig.number || '01XXXXXXXXX'}\nAmount: ৳${bdtAmount} BDT (Send Money)`}\n` +
-          `\`\`\`\n` +
-          `📌 *Payment complete hone ke baad TrxID submit karne ke liye **✍️ Submit Payment Proof** pe click karein ya **📸 Upload Proof** use karein!*`
+          `🌐 **BINANCE PAY DETAILS:**\n` +
+          `• **Binance Pay ID / User:** \`${payId}\`\n` +
+          `• **Direct Pay Link:** [Click Here to Pay with Binance](${payLink})\n` +
+          `• **Amount Due:** **$${usdAmount} USDT / USD**\n\n` +
+          `⚡ **HOW TO GET YOUR KEY:**\n` +
+          `1️⃣ Binance App open karke **Scan** option se niche diya QR Code scan karein ya upar diye Link par click karein.\n` +
+          `2️⃣ Exact Amount **$${usdAmount} USDT** transfer karein.\n` +
+          `3️⃣ Payment hone ke baad Order ID copy karein ya screenshot lein.\n` +
+          `4️⃣ Niche **\`📸 Upload Proof\`** ya **\`✍️ Submit Payment Proof\`** button par click karein!\n\n` +
+          `📌 *Cryptocurrency payments are verified 24/7 with instant key delivery.*`
         )
-        .setThumbnail('https://cdn-icons-png.flaticon.com/512/888/888879.png')
-        .setFooter({ text: `Order #${order.id} | Selected: ${conv.currency} | bKash/Nagad Gateway` });
-    } else if (currentMethod === 'credit') {
-      const creditConfig = payments.credit || {};
-      const payLink = creditConfig.paymentLink || 'https://buy.stripe.com/card_checkout';
-      const cardInstructions =
-        settings.paymentPage?.cardInstructions ||
-        'Pay securely with any Credit or Debit Card (Visa, MasterCard, RuPay, Amex).\nPayment complete hone ke baad UTR / Reference ID submit karein.';
+        .setFooter({ text: `${storeName} • Order #${order.id} • International (Binance Pay) Gateway` })
+        .setTimestamp();
 
-      embed
-        .setTitle(`💳 CREDIT / DEBIT CARD CHECKOUT — Order #${order.id}`)
-        .setDescription(
-          `Hello <@${order.userId}>! Pay securely using any **Credit or Debit Card**:\n\n` +
-          `• **Item:** ${isTopup ? 'Wallet Top-up' : order.productName}\n` +
-          currencyExchangeBlock +
-          `• **Total Amount:** **${conv.formatted}** *(Base: ₹${inrAmount} INR / $${usdAmount} USD)*\n\n` +
-          `🔒 **Accepted Cards:** Visa, MasterCard, RuPay, Maestro & Amex\n\n` +
-          `🔗 **Card Payment Link:**\n` +
-          `👉 **[Click Here to Pay with Credit/Debit Card](${payLink})**\n\n` +
-          `📌 *${cardInstructions}*`
-        )
-        .setThumbnail('https://cdn-icons-png.flaticon.com/512/633/633611.png')
-        .setFooter({ text: `Order #${order.id} | Selected: ${conv.currency} | Credit Card Gateway` });
-    } else if (currentMethod === 'crypto') {
-      const cryptoConfig = payments.crypto || {};
-      embed
-        .setTitle(`🪙 CRYPTO CHECKOUT — Order #${order.id}`)
-        .setDescription(
-          `Hello <@${order.userId}>! Pay with Cryptocurrency:\n\n` +
-          `• **Item:** ${isTopup ? 'Wallet Top-up' : order.productName}\n` +
-          currencyExchangeBlock +
-          `• **Amount Due:** **$${usdAmount} USD** *(Exchanged: ${conv.formatted})*\n\n` +
-          `📥 **Send to any address below:**\n` +
-          `\`\`\`\n${cryptoConfig.details || 'USDT TRC20: Contact Admin\nLTC: Contact Admin'}\n\`\`\`\n` +
-          `📌 *Transaction Hash (TXID) copy karke niche UTR button ya screenshot send karein.*`
-        )
-        .setFooter({ text: `Order #${order.id} | Selected: ${conv.currency} | Crypto Gateway` });
-    } else if (currentMethod === 'paypal') {
-      const paypalConfig = payments.paypal || {};
-      embed
-        .setTitle(`🅿️ PAYPAL CHECKOUT — Order #${order.id}`)
-        .setDescription(
-          `Hello <@${order.userId}>! Pay via PayPal:\n\n` +
-          `• **Item:** ${isTopup ? 'Wallet Top-up' : order.productName}\n` +
-          currencyExchangeBlock +
-          `• **Amount Due:** **$${usdAmount} USD** *(Exchanged: ${conv.formatted})*\n\n` +
-          `📥 **PayPal Instructions:**\n` +
-          `\`\`\`\n${paypalConfig.details || 'PayPal: Friends & Family only'}\n\`\`\`\n` +
-          `📌 *Payment transfer karne ke baad Transaction ID copy karke niche UTR button ya screenshot send karein.*`
-        )
-        .setFooter({ text: `Order #${order.id} | Selected: ${conv.currency} | PayPal Gateway` });
+      attachQrImage(binanceConfig.qrCodeUrl || 'assets/qr/binance_international.png', embed, files);
+
     } else {
-      // Dynamic custom payment method added from website (e.g. easypaisa, jazzcash, bank, etc.)
+      // Any other custom payment method
       const customConfig = payments[currentMethod] || {};
       const methodName = customConfig.name || currentMethod.toUpperCase();
       const accountLine = customConfig.number || customConfig.upiId || customConfig.paymentLink || '';
@@ -554,23 +582,22 @@ class PurchaseFlow {
           `📋 **Payment Instructions:**\n` +
           `\`\`\`\n${details}\n\`\`\`\n` +
           `📌 *Payment complete hone ke baad **✍️ Submit Payment Proof** pe click karein ya **📸 Upload Proof** se screenshot bhejein!*`
-        );
+        )
+        .setFooter({ text: `Order #${order.id} | Selected: ${conv.currency} | ${methodName} Gateway` });
 
       if (customConfig.qrCodeUrl || customConfig.qrCode) {
-        embed.setImage(customConfig.qrCodeUrl || customConfig.qrCode);
+        attachQrImage(customConfig.qrCodeUrl || customConfig.qrCode, embed, files);
       }
-
-      embed.setFooter({ text: `Order #${order.id} | Selected: ${conv.currency} | ${methodName} Gateway` });
     }
 
-    return { embed, currencyRow, toggleRow, actionRow };
+    return { embed, currencyRow, toggleRow, actionRow, files };
   }
 
   /**
    * Sends the initial payment screen into the private ticket channel
    */
   async sendPaymentScreenToChannel(channel, order, selectedMethod = 'upi', selectedCurrency = null) {
-    const { embed, currencyRow, toggleRow, actionRow } = this.buildPaymentMessageData(
+    const { embed, currencyRow, toggleRow, actionRow, files } = this.buildPaymentMessageData(
       order,
       selectedMethod,
       selectedCurrency
@@ -585,7 +612,8 @@ class PurchaseFlow {
     const sentMsg = await channel.send({
       content: welcomeNotice,
       embeds: [embed],
-      components: [currencyRow, toggleRow, actionRow]
+      components: [currencyRow, toggleRow, actionRow],
+      files: files || []
     });
 
     db.updateOrder(order.id, { paymentMessageId: sentMsg.id });
@@ -608,7 +636,7 @@ class PurchaseFlow {
       selectedCurrency: currentCurrency
     });
 
-    const { embed, currencyRow, toggleRow, actionRow } = this.buildPaymentMessageData(
+    const { embed, currencyRow, toggleRow, actionRow, files } = this.buildPaymentMessageData(
       order,
       selectedMethod,
       currentCurrency
@@ -619,17 +647,20 @@ class PurchaseFlow {
     if (interaction.isButton() || interaction.isStringSelectMenu()) {
       await interaction.update({
         embeds: [embed],
-        components
+        components,
+        files: files || []
       });
     } else if (interaction.deferred || interaction.replied) {
       await interaction.editReply({
         embeds: [embed],
-        components
+        components,
+        files: files || []
       });
     } else {
       await interaction.reply({
         embeds: [embed],
         components,
+        files: files || [],
         ephemeral: true
       });
     }

@@ -148,11 +148,11 @@ module.exports = {
     const files = videoFile ? [new AttachmentBuilder(videoFile, { name: 'store_preview.mp4' })] : [];
 
     if (subcommand === 'send') {
+      await interaction.deferReply({ ephemeral: true });
       const channel = interaction.options.getChannel('channel') || interaction.channel;
       await channel.send({ embeds: [embed], components, files });
-      await interaction.reply({
-        content: `✅ Store catalog with video preview successfully sent to ${channel}!`,
-        ephemeral: true
+      await interaction.editReply({
+        content: `✅ Store catalog successfully sent to ${channel}!`
       });
     } else {
       await interaction.reply({
