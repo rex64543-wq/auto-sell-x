@@ -15,7 +15,15 @@ function startDashboard(client, port = process.env.PORT || 3000) {
   // Mount API
   app.use('/api', apiRoutes(client));
 
-  // Fallback to index.html for SPA routing
+  // Web Dashboard routes (Discord Bot Control Center)
+  app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  });
+
+  app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  });
+
   app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
   });

@@ -550,12 +550,22 @@ function switchTab(tabName) {
     stock: { title: 'Stock & License Keys Pool', sub: 'Manage local license key reserves for automated delivery.' },
     settings: { title: 'Store Settings', sub: 'Configure UPI QR details, payment gateway links, banner media, and channels.' },
     apiconnect: { title: '🔌 API Key Connections & Variant Mapping', sub: 'Connect external reseller APIs using API Keys and map Product Variant IDs for automated 0-second delivery.' },
-    broadcast: { title: 'Discord Store Deploy', sub: 'Deploy or refresh the store catalog into your Discord server channel.' }
+    broadcast: { title: 'Discord Store Deploy', sub: 'Deploy or refresh the store catalog into your Discord server channel.' },
+    'discord-designer': { title: '🎨 Discord Bot Embed Designer', sub: 'Easily edit Discord bot embeds, ASCII frames, colors, instructions & preview live in Discord Dark Mode.' },
+    'website-editor': { title: '🎨 Website Storefront Editor & Live CMS', sub: 'Customize public website branding, announcement marquee, hero showcase, features, reviews, and FAQs in real time.' }
   };
 
   if (titles[tabName]) {
     document.getElementById('pageTitle').textContent = titles[tabName].title;
     document.getElementById('pageSubtitle').textContent = titles[tabName].sub;
+  }
+
+  if (tabName === 'discord-designer') {
+    loadDiscordDesignerData();
+  }
+
+  if (tabName === 'website-editor') {
+    loadWebsiteEditorData();
   }
 }
 
@@ -2716,4 +2726,668 @@ window.saveQuickVariantRow = saveQuickVariantRow;
 window.testQuickVariantRow = testQuickVariantRow;
 window.filterVariantMappingTable = filterVariantMappingTable;
 window.toggleProductModalDeliveryFields = toggleProductModalDeliveryFields;
+
+// ==========================================
+// STOREFRONT & WEBSITE LIVE CMS CONTROLLER
+// ==========================================
+
+let webEditorConfig = null;
+
+async function loadWebsiteEditorData() {
+  try {
+    const res = await fetch('/api/website-config');
+    const data = await res.json();
+    if (data.success && data.websiteConfig) {
+      webEditorConfig = JSON.parse(JSON.stringify(data.websiteConfig));
+    } else if (state.settings?.websiteConfig) {
+      webEditorConfig = JSON.parse(JSON.stringify(state.settings.websiteConfig));
+    } else {
+      webEditorConfig = {};
+    }
+    populateWebsiteEditorFields();
+  } catch (err) {
+    console.error('Error loading website config:', err);
+    if (state.settings?.websiteConfig) {
+      webEditorConfig = JSON.parse(JSON.stringify(state.settings.websiteConfig));
+      populateWebsiteEditorFields();
+    }
+  }
+}
+
+function populateWebsiteEditorFields() {
+  if (!webEditorConfig) return;
+
+  // 1. Branding
+  setVal('webStoreName', webEditorConfig.storeName || state.settings?.storeName || 'White X Store');
+  setVal('webTagline', webEditorConfig.tagline || 'Premium Undetected Cheats & Gaming Tools');
+  setVal('webLogoUrl', webEditorConfig.logoUrl || 'logo.png');
+  setVal('webAccentColor', webEditorConfig.accentColor || '#00e5ff');
+  setVal('webAccentColorPicker', webEditorConfig.accentColor || '#00e5ff');
+  setVal('webDiscordInvite', webEditorConfig.discordInvite || 'https://discord.gg/whitexstore');
+  setVal('webTelegramUrl', webEditorConfig.telegramUrl || '');
+  setVal('webYoutubeUrl', webEditorConfig.youtubeUrl || '');
+
+  // 2. Announcement
+  const ann = webEditorConfig.announcement || {};
+  setCheckbox('webAnnounceEnabled', ann.enabled !== false);
+  setVal('webAnnounceBadge', ann.badge || '⚡ LIVE UPDATE');
+  setVal('webAnnounceText', ann.text || '');
+
+  // 3. Hero
+  const hero = webEditorConfig.hero || {};
+  setVal('webHeroBadge', hero.badge || '🛡️ 100% Undetected • 0s Key Drop');
+  setVal('webHeroTitle', hero.title || 'Dominate Every Match With Next-Gen Stealth Cheats');
+  setVal('webHeroSubtitle', hero.subtitle || '');
+  setVal('webHeroVideoUrl', hero.videoUrl || 'store_video.mp4');
+  setCheckbox('webHeroShowVideo', hero.showVideo !== false);
+  setVal('webHeroPrimaryText', hero.primaryBtnText || 'Browse Cheats Catalog');
+  setVal('webHeroPrimaryLink', hero.primaryBtnLink || '#products');
+  setVal('webHeroSecondaryText', hero.secondaryBtnText || 'Join Discord Server');
+  setVal('webHeroSecondaryLink', hero.secondaryBtnLink || 'https://discord.gg/whitexstore');
+
+  const stats = hero.stats || [
+    { label: 'Active Gamers', value: '15,400+' },
+    { label: 'Keys Delivered', value: '38,900+' },
+    { label: 'Detection Rate', value: '0.0%' },
+    { label: 'Instant Delivery', value: '< 1s' }
+  ];
+
+  stats.forEach((st, idx) => {
+    if (idx < 4) {
+      setVal(`webStatLabel${idx}`, st.label || '');
+      setVal(`webStatVal${idx}`, st.value || '');
+    }
+  });
+
+  // 4. Features
+  if (!webEditorConfig.features) webEditorConfig.features = [];
+  renderWebFeaturesList();
+
+  // 5. Reviews
+  if (!webEditorConfig.reviews) webEditorConfig.reviews = [];
+  renderWebReviewsList();
+
+  // 6. FAQs
+  if (!webEditorConfig.faqs) webEditorConfig.faqs = [];
+  renderWebFaqsList();
+
+  // 7. Footer
+  const footer = webEditorConfig.footer || {};
+  setVal('webFooterAbout', footer.aboutText || '');
+  setVal('webFooterDisclaimer', footer.disclaimer || '');
+  setVal('webFooterCopyright', footer.copyright || '© 2026 White X Store. All rights reserved.');
+}
+
+function setVal(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.value = val !== undefined && val !== null ? val : '';
+}
+
+function setCheckbox(id, checked) {
+  const el = document.getElementById(id);
+  if (el) el.checked = Boolean(checked);
+}
+
+function renderWebFeaturesList() {
+  const container = document.getElementById('webFeaturesList');
+  if (!container) return;
+
+  const features = webEditorConfig.features || [];
+  if (features.length === 0) {
+    container.innerHTML = `<p class="muted" style="text-align: center; padding: 10px;">No features added yet. Click "Add Feature Card" above.</p>`;
+    return;
+  }
+
+  container.innerHTML = features.map((feat, idx) => `
+    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display: flex; gap: 12px; align-items: flex-start;">
+      <div style="width: 50px;">
+        <label style="font-size: 11px;">Icon</label>
+        <input type="text" class="form-input form-input-sm" value="${feat.icon || '⚡'}" oninput="webEditorConfig.features[${idx}].icon = this.value" style="text-align: center;">
+      </div>
+      <div style="flex: 1;">
+        <label style="font-size: 11px;">Feature Title</label>
+        <input type="text" class="form-input form-input-sm" value="${feat.title || ''}" oninput="webEditorConfig.features[${idx}].title = this.value" placeholder="Title">
+        <label style="font-size: 11px; margin-top: 6px;">Description</label>
+        <textarea class="form-input form-input-sm" rows="2" oninput="webEditorConfig.features[${idx}].description = this.value" placeholder="Brief feature summary">${feat.description || ''}</textarea>
+      </div>
+      <button type="button" class="btn btn-sm" style="color: #f43f5e; background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3); margin-top: 18px;" onclick="removeWebFeature(${idx})">
+        🗑️
+      </button>
+    </div>
+  `).join('');
+}
+
+function addNewWebFeature() {
+  if (!webEditorConfig.features) webEditorConfig.features = [];
+  webEditorConfig.features.push({
+    icon: '⚡',
+    title: 'New Advantage',
+    description: 'Explain why your store is the best in gaming cheats and support.'
+  });
+  renderWebFeaturesList();
+}
+
+function removeWebFeature(idx) {
+  if (!webEditorConfig.features) return;
+  webEditorConfig.features.splice(idx, 1);
+  renderWebFeaturesList();
+}
+
+function renderWebReviewsList() {
+  const container = document.getElementById('webReviewsList');
+  if (!container) return;
+
+  const reviews = webEditorConfig.reviews || [];
+  if (reviews.length === 0) {
+    container.innerHTML = `<p class="muted" style="text-align: center; padding: 10px;">No reviews added yet. Click "Add Review" above.</p>`;
+    return;
+  }
+
+  container.innerHTML = reviews.map((rev, idx) => `
+    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display: flex; gap: 12px; align-items: flex-start;">
+      <div style="flex: 1;">
+        <div class="form-row" style="margin-bottom: 8px;">
+          <div class="form-group flex-1">
+            <label style="font-size: 11px;">Customer Name</label>
+            <input type="text" class="form-input form-input-sm" value="${rev.author || ''}" oninput="webEditorConfig.reviews[${idx}].author = this.value" placeholder="e.g. GhostRider">
+          </div>
+          <div class="form-group flex-1">
+            <label style="font-size: 11px;">Discord Tag</label>
+            <input type="text" class="form-input form-input-sm" value="${rev.tag || ''}" oninput="webEditorConfig.reviews[${idx}].tag = this.value" placeholder="Ghost#1234">
+          </div>
+          <div class="form-group flex-1">
+            <label style="font-size: 11px;">Product Bought</label>
+            <input type="text" class="form-input form-input-sm" value="${rev.product || ''}" oninput="webEditorConfig.reviews[${idx}].product = this.value" placeholder="Android-Panel (30D)">
+          </div>
+          <div class="form-group" style="max-width: 90px;">
+            <label style="font-size: 11px;">Stars (1-5)</label>
+            <select class="form-input form-input-sm" onchange="webEditorConfig.reviews[${idx}].rating = Number(this.value)">
+              <option value="5" ${rev.rating === 5 ? 'selected' : ''}>⭐⭐⭐⭐⭐ (5)</option>
+              <option value="4" ${rev.rating === 4 ? 'selected' : ''}>⭐⭐⭐⭐ (4)</option>
+              <option value="3" ${rev.rating === 3 ? 'selected' : ''}>⭐⭐⭐ (3)</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label style="font-size: 11px;">Testimonial Review</label>
+          <textarea class="form-input form-input-sm" rows="2" oninput="webEditorConfig.reviews[${idx}].text = this.value" placeholder="What the customer said...">${rev.text || ''}</textarea>
+        </div>
+      </div>
+      <button type="button" class="btn btn-sm" style="color: #f43f5e; background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3); margin-top: 20px;" onclick="removeWebReview(${idx})">
+        🗑️
+      </button>
+    </div>
+  `).join('');
+}
+
+function addNewWebReview() {
+  if (!webEditorConfig.reviews) webEditorConfig.reviews = [];
+  webEditorConfig.reviews.push({
+    author: 'Verified Buyer',
+    tag: 'Buyer#' + Math.floor(1000 + Math.random() * 9000),
+    product: 'Android-Panel (30 Days)',
+    rating: 5,
+    text: 'Amazing undetected cheat, fast delivery, and very friendly support!',
+    date: 'Just now'
+  });
+  renderWebReviewsList();
+}
+
+function removeWebReview(idx) {
+  if (!webEditorConfig.reviews) return;
+  webEditorConfig.reviews.splice(idx, 1);
+  renderWebReviewsList();
+}
+
+function renderWebFaqsList() {
+  const container = document.getElementById('webFaqsList');
+  if (!container) return;
+
+  const faqs = webEditorConfig.faqs || [];
+  if (faqs.length === 0) {
+    container.innerHTML = `<p class="muted" style="text-align: center; padding: 10px;">No FAQs added yet. Click "Add FAQ Item" above.</p>`;
+    return;
+  }
+
+  container.innerHTML = faqs.map((faq, idx) => `
+    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display: flex; gap: 12px; align-items: flex-start;">
+      <div style="flex: 1;">
+        <label style="font-size: 11px;">Question</label>
+        <input type="text" class="form-input form-input-sm" value="${faq.q || ''}" oninput="webEditorConfig.faqs[${idx}].q = this.value" placeholder="e.g. How fast is delivery?">
+        <label style="font-size: 11px; margin-top: 6px;">Answer</label>
+        <textarea class="form-input form-input-sm" rows="2" oninput="webEditorConfig.faqs[${idx}].a = this.value" placeholder="Clear helpful answer for your customers">${faq.a || ''}</textarea>
+      </div>
+      <button type="button" class="btn btn-sm" style="color: #f43f5e; background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3); margin-top: 18px;" onclick="removeWebFaq(${idx})">
+        🗑️
+      </button>
+    </div>
+  `).join('');
+}
+
+function addNewWebFaq() {
+  if (!webEditorConfig.faqs) webEditorConfig.faqs = [];
+  webEditorConfig.faqs.push({
+    q: 'How do I download and install the loader?',
+    a: 'Once your payment is verified, you receive a direct loader download link with simple 1-click installer and tutorial video.'
+  });
+  renderWebFaqsList();
+}
+
+function removeWebFaq(idx) {
+  if (!webEditorConfig.faqs) return;
+  webEditorConfig.faqs.splice(idx, 1);
+  renderWebFaqsList();
+}
+
+async function saveWebsiteEditorData() {
+  try {
+    const updated = {
+      enabled: true,
+      storeName: document.getElementById('webStoreName')?.value || 'White X Store',
+      tagline: document.getElementById('webTagline')?.value || '',
+      logoUrl: document.getElementById('webLogoUrl')?.value || 'logo.png',
+      faviconUrl: document.getElementById('webLogoUrl')?.value || 'logo.png',
+      accentColor: document.getElementById('webAccentColor')?.value || '#00e5ff',
+      secondaryColor: '#8b5cf6',
+      discordInvite: document.getElementById('webDiscordInvite')?.value || '',
+      telegramUrl: document.getElementById('webTelegramUrl')?.value || '',
+      youtubeUrl: document.getElementById('webYoutubeUrl')?.value || '',
+      announcement: {
+        enabled: document.getElementById('webAnnounceEnabled')?.checked ?? true,
+        badge: document.getElementById('webAnnounceBadge')?.value || '⚡ LIVE UPDATE',
+        text: document.getElementById('webAnnounceText')?.value || ''
+      },
+      hero: {
+        badge: document.getElementById('webHeroBadge')?.value || '🛡️ 100% Undetected • 0s Key Drop',
+        title: document.getElementById('webHeroTitle')?.value || '',
+        subtitle: document.getElementById('webHeroSubtitle')?.value || '',
+        showVideo: document.getElementById('webHeroShowVideo')?.checked ?? true,
+        videoUrl: document.getElementById('webHeroVideoUrl')?.value || 'store_video.mp4',
+        bannerUrl: 'https://i.imgur.com/8Qe87dE.png',
+        primaryBtnText: document.getElementById('webHeroPrimaryText')?.value || 'Browse Cheats Catalog',
+        primaryBtnLink: document.getElementById('webHeroPrimaryLink')?.value || '#products',
+        secondaryBtnText: document.getElementById('webHeroSecondaryText')?.value || 'Join Discord Server',
+        secondaryBtnLink: document.getElementById('webHeroSecondaryLink')?.value || 'https://discord.gg/whitexstore',
+        stats: [
+          { label: document.getElementById('webStatLabel0')?.value || 'Active Gamers', value: document.getElementById('webStatVal0')?.value || '15,400+' },
+          { label: document.getElementById('webStatLabel1')?.value || 'Keys Delivered', value: document.getElementById('webStatVal1')?.value || '38,900+' },
+          { label: document.getElementById('webStatLabel2')?.value || 'Detection Rate', value: document.getElementById('webStatVal2')?.value || '0.0%' },
+          { label: document.getElementById('webStatLabel3')?.value || 'Instant Delivery', value: document.getElementById('webStatVal3')?.value || '< 1s' }
+        ]
+      },
+      features: webEditorConfig?.features || [],
+      reviews: webEditorConfig?.reviews || [],
+      faqs: webEditorConfig?.faqs || [],
+      footer: {
+        aboutText: document.getElementById('webFooterAbout')?.value || '',
+        disclaimer: document.getElementById('webFooterDisclaimer')?.value || '',
+        copyright: document.getElementById('webFooterCopyright')?.value || '© 2026 White X Store. All rights reserved.'
+      }
+    };
+
+    const res = await fetch('/api/website-config', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated)
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      webEditorConfig = data.websiteConfig;
+      if (state.settings) state.settings.websiteConfig = data.websiteConfig;
+      
+      const alertBox = document.getElementById('webEditorAlert');
+      const alertMsg = document.getElementById('webEditorAlertMsg');
+      if (alertBox && alertMsg) {
+        alertMsg.textContent = '✅ All website details saved and updated successfully! Changes are live on your storefront.';
+        alertBox.style.display = 'flex';
+        setTimeout(() => { alertBox.style.display = 'none'; }, 4000);
+      }
+    } else {
+      alert('Failed to save website config: ' + (data.error || 'Unknown error'));
+    }
+  } catch (err) {
+    console.error('Error saving website config:', err);
+    alert('Error saving website config: ' + err.message);
+  }
+}
+
+function resetWebConfigToDefaults() {
+  if (!confirm('Are you sure you want to restore the recommended professional storefront defaults?')) return;
+  loadWebsiteEditorData();
+}
+
+window.loadWebsiteEditorData = loadWebsiteEditorData;
+window.saveWebsiteEditorData = saveWebsiteEditorData;
+window.addNewWebFeature = addNewWebFeature;
+window.removeWebFeature = removeWebFeature;
+window.addNewWebReview = addNewWebReview;
+window.removeWebReview = removeWebReview;
+window.addNewWebFaq = addNewWebFaq;
+window.removeWebFaq = removeWebFaq;
+window.resetWebConfigToDefaults = resetWebConfigToDefaults;
+
+// ==========================================
+// Discord Bot Embed Designer & Live Simulator
+// ==========================================
+
+const LUXURY_DISCORD_TEMPLATE = `╭──────────────────────────────────────────╮
+  👑  **WHITE X STORE — OFFICIAL MARKETPLACE**
+  *Your #1 Trusted Destination for Undetected Panels*
+╰──────────────────────────────────────────╯
+
+> ⚡ **Instant Key Delivery** • 🛡️ **Anti-Ban Protected** • 💳 **Instant UPI / Cards / Wallet**
+
+### 🛒 𝗛𝗢𝗪 𝗧𝗢 𝗣𝗨𝗥𝗖𝗛𝗔𝗦𝗘 / 𝗞𝗔𝗜𝗦𝗘 𝗞𝗛𝗔𝗥𝗜𝗗𝗘𝗜𝗡:
+**1️⃣ Select Your Cheat / Panel:**
+• Niche diye gaye Dropdown Menu (\`🛒 Select a Product / Panel...\`) se product choose karein.
+
+**2️⃣ Review Features, Prices & Live Status:**
+• Product select karte hi aapko **Private Live Card** dikhega jisme live features aur 1D / 7D / 30D pricing show hogi.
+
+**3️⃣ Instant Payment & 0-Second Delivery:**
+• Apne pasandida plan pe click karein aur **UPI QR Code, Card, Crypto** ya **Wallet Balance** se pay karein. License key turant aapke DM mein deliver ho jayegi!
+
+──────────────────────────────────────────
+### 🚦 𝗟𝗜𝗩𝗘 𝗦𝗧𝗔𝗧𝗨𝗦 𝗜𝗡𝗗𝗜𝗖𝗔𝗧𝗢𝗥𝗦:
+• 🟢 **Safe / Undetected** : Fully Working *(Safe for Main Account)*
+• 🟡 **Maintenance** : Under update *(Wait for announcement)*
+• 🔴 **Patched / Offline** : Detected *(Do NOT buy or use right now)*
+
+──────────────────────────────────────────
+### 💳 𝗪𝗔𝗟𝗟𝗘𝗧 & 𝟭-𝗦𝗘𝗖𝗢𝗡𝗗 𝗖𝗛𝗘𝗖𝗞𝗢𝗨𝗧:
+• Click **\`💳 My Wallet\`** below to check your current funds anytime.
+• Click **\`➕ Add Balance / Top-up\`** to deposit funds and checkout with 1-click!`;
+
+async function loadDiscordDesignerData() {
+  if (!state.settings || Object.keys(state.settings).length === 0) {
+    try {
+      const res = await fetch('/api/settings');
+      state.settings = await res.json();
+    } catch (err) {
+      console.warn('Could not load settings:', err);
+    }
+  }
+
+  const s = state.settings || {};
+  const shop = s.shopPage || {};
+  const deal = s.dealPage || {};
+  const pay = s.paymentPage || {};
+
+  const storeName = s.storeName || 'White X Store';
+  const color = shop.color || '#00d2ff';
+
+  const elStoreName = document.getElementById('dsStoreName');
+  if (elStoreName) elStoreName.value = storeName;
+
+  const elColor = document.getElementById('dsEmbedColor');
+  const elColorPicker = document.getElementById('dsEmbedColorPicker');
+  if (elColor) elColor.value = color;
+  if (elColorPicker) elColorPicker.value = color.startsWith('#') ? color : `#${color}`;
+
+  const elAuthorName = document.getElementById('dsAuthorName');
+  if (elAuthorName) elAuthorName.value = shop.authorName || `${storeName} • Official Automated Marketplace`;
+
+  const elAuthorIcon = document.getElementById('dsAuthorIcon');
+  if (elAuthorIcon) elAuthorIcon.value = shop.authorIcon || shop.thumbnailUrl || 'logo.png';
+
+  const elEmbedTitle = document.getElementById('dsEmbedTitle');
+  if (elEmbedTitle) elEmbedTitle.value = shop.title || `⚡ 𝐖𝐇𝐈𝐓𝐄 𝐗 𝐒𝐓𝐎𝐑𝐄 — 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋 𝐂𝐀𝐓𝐀𝐋𝐎𝐆 ⚡`;
+
+  const elThumbnail = document.getElementById('dsThumbnailUrl');
+  if (elThumbnail) elThumbnail.value = shop.thumbnailUrl || 'https://i.imgur.com/8Qe87dE.png';
+
+  const elBanner = document.getElementById('dsBannerUrl');
+  if (elBanner) elBanner.value = shop.bannerUrl || 'https://i.imgur.com/8Qe87dE.png';
+
+  const elFooter = document.getElementById('dsFooterText');
+  if (elFooter) elFooter.value = shop.footer || `${storeName} • Select a product below to start • 24/7 Automated Delivery`;
+
+  const elDesc = document.getElementById('dsEmbedDescription');
+  if (elDesc) elDesc.value = shop.description && shop.description.trim() ? shop.description : LUXURY_DISCORD_TEMPLATE;
+
+  const elDeal = document.getElementById('dsDealInstructions');
+  if (elDeal) elDeal.value = deal.instructions || '1. Please confirm your order details above.\n2. Tap the 🤝 Make Deal / Pay Now button below when you are ready to make payment.\n3. The UPI QR Code & Payment options will unlock instantly in this channel!';
+
+  const elUpi = document.getElementById('dsUpiInstructions');
+  if (elUpi) elUpi.value = pay.upiInstructions || '📱 GPay / PhonePe / Paytm se niche diya QR Code Scan karke Pay karein!\nPayment hone ke baad niche 📸 Upload Proof from Gallery ya UTR button pe click karein.';
+
+  const elCard = document.getElementById('dsCardInstructions');
+  if (elCard) elCard.value = pay.cardInstructions || 'Pay securely with any Credit or Debit Card (Visa, MasterCard, RuPay, Amex).\nPayment complete hone ke baad UTR / Reference ID submit karein.';
+
+  const elChan = document.getElementById('dsTargetChannelId');
+  if (elChan) elChan.value = s.shopChannelId || s.verificationChannelId || '';
+
+  updateDiscordEmbedPreview();
+}
+
+function parseDiscordMarkdown(text) {
+  if (!text) return '';
+
+  // 1. Escape HTML
+  let out = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // 2. Headings (### Title)
+  out = out.replace(/^###\s+(.*)$/gim, '<div style="font-size: 14px; font-weight: 700; color: #f2f3f5; margin-top: 10px; margin-bottom: 4px;">$1</div>');
+
+  // 3. Dividers (─────)
+  out = out.replace(/^[─—–-]{5,}$/gim, '<div style="height: 1px; background: rgba(255,255,255,0.08); margin: 10px 0;"></div>');
+
+  // 4. Blockquotes (&gt; Text)
+  out = out.replace(/^&gt;\s*(.*)$/gim, '<div style="display: flex; gap: 8px; margin: 4px 0;"><div style="width: 4px; background: #4e5058; border-radius: 2px;"></div><div style="color: #dbdee1;">$1</div></div>');
+
+  // 5. Bold (**text**)
+  out = out.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #f2f3f5; font-weight: 700;">$1</strong>');
+
+  // 6. Italic (*text*)
+  out = out.replace(/\*(.*?)\*/g, '<em style="color: #dbdee1;">$1</em>');
+
+  // 7. Inline Code (`code`)
+  out = out.replace(/`([^`]+)`/g, '<code style="background: #2b2d31; color: #dbdee1; padding: 2px 5px; border-radius: 4px; font-family: Consolas, monospace; font-size: 12px;">$1</code>');
+
+  // 8. Newlines to <br>
+  out = out.replace(/\n/g, '<br>');
+
+  return out;
+}
+
+function updateDiscordEmbedPreview() {
+  const storeName = document.getElementById('dsStoreName')?.value || 'White X Store';
+  let color = document.getElementById('dsEmbedColor')?.value || '#00d2ff';
+  if (!color.startsWith('#')) color = `#${color}`;
+
+  const authorName = document.getElementById('dsAuthorName')?.value || `${storeName} • Official Automated Marketplace`;
+  const authorIcon = document.getElementById('dsAuthorIcon')?.value || 'logo.png';
+  const embedTitle = document.getElementById('dsEmbedTitle')?.value || `⚡ 𝐖𝐇𝐈𝐓𝐄 𝐗 𝐒𝐓𝐎𝐑𝐄 — 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋 𝐂𝐀𝐓𝐀𝐋𝐎𝐆 ⚡`;
+  const thumbnailUrl = document.getElementById('dsThumbnailUrl')?.value || '';
+  const bannerUrl = document.getElementById('dsBannerUrl')?.value || '';
+  const footerText = document.getElementById('dsFooterText')?.value || `${storeName} • Select a product below to start • 24/7 Automated Delivery`;
+  const descRaw = document.getElementById('dsEmbedDescription')?.value || '';
+
+  // Update Preview Elements
+  const prevBotName = document.getElementById('prevBotName');
+  if (prevBotName) prevBotName.textContent = storeName;
+
+  const prevCard = document.getElementById('prevEmbedCard');
+  if (prevCard) prevCard.style.borderLeftColor = color;
+
+  const prevAuthorName = document.getElementById('prevAuthorName');
+  if (prevAuthorName) prevAuthorName.textContent = authorName;
+
+  const prevAuthorIcon = document.getElementById('prevAuthorIcon');
+  if (prevAuthorIcon) {
+    if (authorIcon && authorIcon.trim()) {
+      prevAuthorIcon.src = authorIcon;
+      prevAuthorIcon.style.display = 'inline-block';
+    } else {
+      prevAuthorIcon.style.display = 'none';
+    }
+  }
+
+  const prevTitle = document.getElementById('prevEmbedTitle');
+  if (prevTitle) prevTitle.textContent = embedTitle;
+
+  const prevDesc = document.getElementById('prevEmbedDesc');
+  if (prevDesc) {
+    prevDesc.innerHTML = parseDiscordMarkdown(descRaw);
+  }
+
+  const prevThumb = document.getElementById('prevThumbnailImg');
+  if (prevThumb) {
+    if (thumbnailUrl && thumbnailUrl.trim()) {
+      prevThumb.src = thumbnailUrl;
+      prevThumb.style.display = 'block';
+    } else {
+      prevThumb.style.display = 'none';
+    }
+  }
+
+  const prevBanner = document.getElementById('prevBannerImg');
+  if (prevBanner) {
+    if (bannerUrl && bannerUrl.trim()) {
+      prevBanner.src = bannerUrl;
+      prevBanner.style.display = 'block';
+    } else {
+      prevBanner.style.display = 'none';
+    }
+  }
+
+  const prevFooter = document.getElementById('prevFooterText');
+  if (prevFooter) prevFooter.textContent = footerText;
+}
+
+function setDesignerColor(hex) {
+  const elColor = document.getElementById('dsEmbedColor');
+  const elColorPicker = document.getElementById('dsEmbedColorPicker');
+  if (elColor) elColor.value = hex;
+  if (elColorPicker) elColorPicker.value = hex;
+  updateDiscordEmbedPreview();
+}
+
+function insertDesignerSnippet(snippetType) {
+  const elDesc = document.getElementById('dsEmbedDescription');
+  if (!elDesc) return;
+
+  const storeName = document.getElementById('dsStoreName')?.value || 'WHITE X STORE';
+
+  if (snippetType === 'frame') {
+    const frame = `╭──────────────────────────────────────────╮\n  👑  **${storeName.toUpperCase()} — OFFICIAL MARKETPLACE**\n  *Your #1 Trusted Destination for Undetected Panels*\n╰──────────────────────────────────────────╯\n\n`;
+    elDesc.value = frame + elDesc.value;
+  } else if (snippetType === 'steps') {
+    const steps = `\n### 🛒 𝗛𝗢𝗪 𝗧𝗢 𝗣𝗨𝗥𝗖𝗛𝗔𝗦𝗘 / 𝗞𝗔𝗜𝗦𝗘 𝗞𝗛𝗔𝗥𝗜𝗗𝗘𝗜𝗡:\n**1️⃣ Select Your Cheat / Panel:** Niche diye gaye menu se product choose karein.\n**2️⃣ Review Features & Status:** Private Live Card mein features & duration pricing check karein.\n**3️⃣ 0-Second Delivery:** UPI / Card / Crypto / Wallet se pay karke key DM mein turant payein!\n\n`;
+    elDesc.value += steps;
+  } else if (snippetType === 'status') {
+    const status = `\n──────────────────────────────────────────\n### 🚦 𝗟𝗜𝗩𝗘 𝗦𝗧𝗔𝗧𝗨𝗦 𝗜𝗡𝗗𝗜𝗖𝗔𝗧𝗢𝗥𝗦:\n• 🟢 **Safe / Undetected** : Fully Working *(Safe for Main Account)*\n• 🟡 **Maintenance** : Under update *(Wait for announcement)*\n• 🔴 **Patched / Offline** : Detected *(Do NOT buy or use right now)*\n\n`;
+    elDesc.value += status;
+  } else if (snippetType === 'wallet') {
+    const wallet = `\n──────────────────────────────────────────\n### 💳 𝗪𝗔𝗟𝗟𝗘𝗧 & 𝟭-𝗦𝗘𝗖𝗢𝗡𝗗 𝗖𝗛𝗘𝗖𝗞𝗢𝗨𝗧:\n• Click **\`💳 My Wallet\`** below to check your balance.\n• Click **\`➕ Add Balance / Top-up\`** to deposit funds and checkout with 1-click!\n\n`;
+    elDesc.value += wallet;
+  } else if (snippetType === 'restore') {
+    if (!confirm('Restore the default luxury Discord embed template?')) return;
+    elDesc.value = LUXURY_DISCORD_TEMPLATE;
+  }
+
+  updateDiscordEmbedPreview();
+}
+
+async function saveDiscordDesignerData() {
+  const storeName = document.getElementById('dsStoreName')?.value.trim() || 'White X Store';
+  let color = document.getElementById('dsEmbedColor')?.value.trim() || '#00d2ff';
+  if (!color.startsWith('#')) color = `#${color}`;
+
+  const authorName = document.getElementById('dsAuthorName')?.value.trim();
+  const authorIcon = document.getElementById('dsAuthorIcon')?.value.trim();
+  const title = document.getElementById('dsEmbedTitle')?.value.trim();
+  const thumbnailUrl = document.getElementById('dsThumbnailUrl')?.value.trim();
+  const bannerUrl = document.getElementById('dsBannerUrl')?.value.trim();
+  const footer = document.getElementById('dsFooterText')?.value.trim();
+  const description = document.getElementById('dsEmbedDescription')?.value;
+
+  const dealInstructions = document.getElementById('dsDealInstructions')?.value;
+  const upiInstructions = document.getElementById('dsUpiInstructions')?.value;
+  const cardInstructions = document.getElementById('dsCardInstructions')?.value;
+  const shopChannelId = document.getElementById('dsTargetChannelId')?.value.trim();
+
+  const payload = {
+    storeName,
+    shopChannelId: shopChannelId || state.settings?.shopChannelId,
+    shopPage: {
+      title,
+      description,
+      bannerUrl,
+      thumbnailUrl,
+      color,
+      footer,
+      authorName,
+      authorIcon
+    },
+    dealPage: {
+      instructions: dealInstructions
+    },
+    paymentPage: {
+      upiInstructions,
+      cardInstructions
+    }
+  };
+
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      state.settings = { ...state.settings, ...payload };
+      alert('✅ All Discord Bot Embed settings and instructions saved successfully!');
+    } else {
+      alert('⚠️ Failed to save settings: ' + (data.error || 'Unknown error'));
+    }
+  } catch (err) {
+    console.error('Error saving Discord Designer settings:', err);
+    alert('⚠️ Error saving settings: ' + err.message);
+  }
+}
+
+async function deployShopEmbedFromDesigner() {
+  const channelId = document.getElementById('dsTargetChannelId')?.value.trim();
+  if (!channelId) {
+    alert('Please enter a target Discord Channel ID before deploying!');
+    document.getElementById('dsTargetChannelId')?.focus();
+    return;
+  }
+
+  // Save changes first
+  await saveDiscordDesignerData();
+
+  try {
+    const res = await fetch('/api/bot/shop-send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channelId })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      alert(`🎉 SUCCESS! Official Storefront Embed deployed to Discord channel: #${data.channelName}\nMessage ID: ${data.messageId}`);
+    } else {
+      alert('⚠️ Could not deploy to Discord: ' + (data.error || 'Make sure the bot is online and in the target server.'));
+    }
+  } catch (err) {
+    console.error('Error deploying to Discord:', err);
+    alert('⚠️ Deployment request failed: ' + err.message);
+  }
+}
+
+window.loadDiscordDesignerData = loadDiscordDesignerData;
+window.updateDiscordEmbedPreview = updateDiscordEmbedPreview;
+window.setDesignerColor = setDesignerColor;
+window.insertDesignerSnippet = insertDesignerSnippet;
+window.saveDiscordDesignerData = saveDiscordDesignerData;
+window.deployShopEmbedFromDesigner = deployShopEmbedFromDesigner;
+
 

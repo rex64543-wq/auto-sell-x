@@ -145,22 +145,36 @@ class PurchaseFlow {
         .setStyle(ButtonStyle.Secondary)
     );
 
+    const embedColor = settings.shopPage?.color
+      ? parseInt(settings.shopPage.color.replace('#', ''), 16)
+      : 0x00d2ff;
+
     const embed = new EmbedBuilder()
-      .setColor(0x00d2ff)
-      .setTitle(`📦 ${product.name} — Live Features & Pricing`)
+      .setColor(embedColor)
+      .setAuthor({
+        name: `${storeName} • Verified Product Inspection`,
+        iconURL: settings.shopPage?.thumbnailUrl || 'https://i.imgur.com/8Qe87dE.png'
+      })
+      .setTitle(`📦 ${product.name} ${product.version ? `(${product.version})` : ''} — Live Specifications`)
       .setDescription(
-        `🔥 **PANEL FEATURES & HIGHLIGHTS:**\n` +
+        `╭──────────────────────────────────────────╮\n` +
+        `  📦  **${product.name.toUpperCase()}** ${product.version ? `\`${product.version}\`` : ''}\n` +
+        `  *Category: ${product.category || 'PC'} • Platform Engine*\n` +
+        `╰──────────────────────────────────────────╯\n\n` +
+        `> 🛡️ **Anti-Cheat Status:** ${statusText}\n` +
+        `> ⚡ **Delivery Engine:** 0-Second Automated Key Drop\n` +
+        `> 👁️ **Protection:** Kernel-Level Stealth Bypass\n\n` +
+        `🔥 **PANEL FEATURES & CAPABILITIES:**\n` +
         `${featuresText}\n\n` +
-        `• **Category:** \`${product.category || 'PC'}\`\n` +
-        `• **Status:** \`${statusText}\`\n` +
-        `• **Version:** \`${product.version || 'v1.0'}\`\n\n` +
-        `💰 **PRICING DURATION OPTIONS ${previewCurrency && previewCurrency !== 'ALL' ? `(${previewCurrency})` : '(INR / BDT / USD / NPR)'}:**\n` +
+        `──────────────────────────────────────────\n` +
+        `💰 **AVAILABLE DURATION PLANS ${previewCurrency && previewCurrency !== 'ALL' ? `(${previewCurrency})` : '(MULTI-CURRENCY)'}:**\n` +
         `${plansText}\n` +
-        `👇 *Use the Currency Exchange dropdown to switch currencies, or select a plan to checkout!*`
+        `👇 *Niche diye gaye dropdown se duration plan select karein aur checkout karein!*`
       )
       .setFooter({
-        text: `Private Preview | ${storeName} | Live Status: ${statusText}`
-      });
+        text: `${storeName} • 24/7 Automated Delivery • Status: ${statusText}`
+      })
+      .setTimestamp();
 
     const rows = [planRow, currPreviewRow, backRow];
 
@@ -432,16 +446,27 @@ class PurchaseFlow {
       embed
         .setTitle(title)
         .setDescription(
-          `Hello <@${order.userId}>! Here are your payment details:\n\n` +
-          `• **Type / Item:** ${isTopup ? '**Wallet Top-up**' : order.productName}\n` +
-          (isTopup ? '' : `• **Plan Duration:** \`${order.planDuration || '30 Days'}\`\n`) +
+          `╭──────────────────────────────────────────╮\n` +
+          `  🧾  **ORDER PAYMENT & VERIFICATION**\n` +
+          `  *Order ID: #${order.id} • 0s Key Drop*\n` +
+          `╰──────────────────────────────────────────╯\n\n` +
+          `> 👤 **Buyer:** <@${order.userId}>\n` +
+          `> 📦 **Item:** \`${isTopup ? 'Wallet Top-up' : order.productName}\`\n` +
+          (isTopup ? '' : `> ⏱️ **Duration Plan:** \`${order.planDuration || '30 Days'}\`\n`) +
+          `> 💰 **Total Amount:** **₹${order.amount} INR** *(${conv.formatted})*\n\n` +
           currencyExchangeBlock +
-          `• **Payable via UPI:** **₹${order.amount} INR** *(Exchanged: ${conv.formatted})*\n` +
-          `• **UPI ID:** \`${upiId}\`\n\n` +
+          `📱 **UPI & QR CODE PAYMENT DETAILS:**\n` +
+          `• **UPI ID:** \`${upiId}\`\n` +
+          `• **Payee Name:** \`${payeeName}\`\n\n` +
+          `⚡ **HOW TO GET YOUR KEY:**\n` +
+          `1️⃣ Niche diye QR Code ko Google Pay / PhonePe / Paytm se scan karein.\n` +
+          `2️⃣ Payment complete hone ke baad UTR / Reference ID copy karein ya screenshot lein.\n` +
+          `3️⃣ Niche **\`📸 Upload Proof\`** ya **\`✍️ Submit Payment Proof\`** button par click karein!\n\n` +
           `${instructions}`
         )
         .setImage(qrCodeApi)
-        .setFooter({ text: `Order #${order.id} | Selected: ${conv.currency} | ${storeName}` });
+        .setFooter({ text: `${storeName} • Order #${order.id} • 24/7 Automated Delivery` })
+        .setTimestamp();
     } else if (currentMethod === 'bkash') {
       const bkashConfig = payments.bkash || {};
 

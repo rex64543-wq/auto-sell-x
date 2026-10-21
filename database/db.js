@@ -243,6 +243,135 @@ const DEFAULT_PRODUCTS = {
   }
 };
 
+const DEFAULT_WEBSITE_CONFIG = {
+  enabled: true,
+  storeName: 'White X Store',
+  tagline: 'Premium Undetected Cheats & Gaming Tools',
+  logoUrl: 'logo.png',
+  faviconUrl: 'logo.png',
+  accentColor: '#00e5ff',
+  secondaryColor: '#8b5cf6',
+  discordInvite: 'https://discord.gg/whitexstore',
+  telegramUrl: 'https://t.me/whitexstore',
+  youtubeUrl: '',
+  announcement: {
+    enabled: true,
+    badge: '⚡ LIVE UPDATE',
+    text: 'Free Fire & BGMI v2.4 Bypass Released! • 100% Undetected & Anti-Ban Active • Instant UPI & Crypto Automatic Key Delivery • Join our Discord for free keys & daily giveaways!'
+  },
+  hero: {
+    badge: '🛡️ 100% Undetected • 0s Automated Key Delivery',
+    title: 'Dominate Every Match With Next-Gen Stealth Cheats',
+    subtitle: 'Engineered for pure precision and untouchable anti-ban stealth. Instant automated license delivery in 0 seconds with multi-currency checkout & 24/7 dedicated support.',
+    showVideo: true,
+    videoUrl: 'store_video.mp4',
+    bannerUrl: 'https://i.imgur.com/8Qe87dE.png',
+    primaryBtnText: 'Browse Cheats Catalog',
+    primaryBtnLink: '#products',
+    secondaryBtnText: 'Join Discord Server',
+    secondaryBtnLink: 'https://discord.gg/whitexstore',
+    stats: [
+      { label: 'Active Gamers', value: '15,400+' },
+      { label: 'Keys Delivered', value: '38,900+' },
+      { label: 'Detection Rate', value: '0.0%' },
+      { label: 'Instant Delivery', value: '< 1s' }
+    ]
+  },
+  features: [
+    {
+      icon: '⚡',
+      title: '0-Second Automated Delivery',
+      description: 'Never wait for an admin. Keys, loaders, and instant setup guides are delivered directly upon payment confirmation.'
+    },
+    {
+      icon: '🛡️',
+      title: 'Kernel-Level Anti-Ban Bypass',
+      description: 'Proprietary memory injection and device ID spoofing safeguards your main accounts against blacklist and server bans.'
+    },
+    {
+      icon: '🎯',
+      title: 'Stream-Proof & Ultra Smooth',
+      description: 'Invisible on OBS, Discord screen share, and recording tools. Humanized smooth aim looks 100% legit.'
+    },
+    {
+      icon: '💳',
+      title: 'Universal Multi-Currency Pay',
+      description: 'Pay easily with UPI (PhonePe, GPay, Paytm), QR Code, bKash, Crypto (USDT, LTC, BTC), Cards, or PayPal.'
+    },
+    {
+      icon: '🔄',
+      title: 'Auto Daily Status Watchdog',
+      description: 'Real-time cheat status updates. If any game updates, panels automatically switch to safe maintenance mode.'
+    },
+    {
+      icon: '💬',
+      title: '24/7 Discord Live Support',
+      description: 'Dedicated ticket staff and tutorial guides ready round-the-clock to assist with installation and setup.'
+    }
+  ],
+  reviews: [
+    {
+      author: 'GhostRider_99',
+      tag: 'Ghost#4120',
+      product: 'Android-Panel (30 Days)',
+      rating: 5,
+      text: 'Best cheat I have ever used on Android. Been playing on my main account for 3 weeks now, reached Grandmaster with 0 ban. Instant key delivery too!',
+      date: '2 days ago'
+    },
+    {
+      author: 'PhantomX',
+      tag: 'Phantom#8812',
+      product: 'External-Panel (PC)',
+      rating: 5,
+      text: 'Stream proof actually works! Streamed on Discord with friends and nobody could tell I was using ESP. Smooth aimbot is insane.',
+      date: '5 days ago'
+    },
+    {
+      author: 'Aman_FF',
+      tag: 'Aman#3310',
+      product: 'Uid-bypass (7 Days)',
+      rating: 5,
+      text: 'Paid with PhonePe UPI, got the key in literally 2 seconds on the bot. Super fast service and developer is very helpful in tickets.',
+      date: '1 week ago'
+    },
+    {
+      author: 'Viper_Apex',
+      tag: 'Viper#9021',
+      product: 'Internal-Panel (30 Days)',
+      rating: 5,
+      text: 'Silent aim is pure magic. High FPS, no lag or stutter, and the bypass is rock solid. 10/10 recommend White X Store to everyone.',
+      date: '2 weeks ago'
+    }
+  ],
+  faqs: [
+    {
+      q: 'How fast do I receive my key after payment?',
+      a: 'Delivery is 100% automated! Within seconds of completing payment via UPI, Crypto, or Cards, your license key and download instructions will appear on screen and in your Discord DM.'
+    },
+    {
+      q: 'Is this cheat safe for my main account?',
+      a: 'Yes! All products marked with the 🟢 Safe / Undetected badge are actively monitored by our bypass engine. We test every game update before marking products safe.'
+    },
+    {
+      q: 'Do I need Root for Android Cheats?',
+      a: 'Our Android-Panel supports BOTH Root and Non-Root (via safe virtual container). Detailed setup video is provided with every purchase.'
+    },
+    {
+      q: 'Which payment methods are accepted?',
+      a: 'We accept UPI (Google Pay, PhonePe, Paytm, BHIM QR), bKash / Nagad, Cryptocurrency (USDT TRC20, LTC, Bitcoin), Credit/Debit Cards, and PayPal.'
+    },
+    {
+      q: 'What if I need help setting up?',
+      a: 'Our Discord support team is available 24/7. Join our Discord server and open a support ticket; our staff will guide you through screen-share or step-by-step instructions.'
+    }
+  ],
+  footer: {
+    aboutText: 'White X Store is the premier destination for private, high-performance game enhancements, stream-proof overlays, and stealth bypasses.',
+    disclaimer: 'Disclaimer: All products and software are provided for educational and private testing purposes. We are not affiliated with game developers.',
+    copyright: '© 2026 White X Store. All rights reserved.'
+  }
+};
+
 const DEFAULT_SETTINGS = {
   verificationChannelId: null,
   logChannelId: null,
@@ -311,7 +440,8 @@ const DEFAULT_SETTINGS = {
       details: 'PayPal: https://paypal.me/yourusername\nPlease send as Friends & Family only!'
     }
   },
-  apiConnections: {}
+  apiConnections: {},
+  websiteConfig: DEFAULT_WEBSITE_CONFIG
 };
 
 class Database {
@@ -813,6 +943,26 @@ class Database {
     };
     saveJson('settings.json', this.settings);
     return this.settings;
+  }
+
+  getWebsiteConfig() {
+    this.reloadSettings();
+    if (!this.settings.websiteConfig) {
+      this.settings.websiteConfig = JSON.parse(JSON.stringify(DEFAULT_WEBSITE_CONFIG));
+      this.saveSettings();
+    }
+    return this.settings.websiteConfig;
+  }
+
+  updateWebsiteConfig(updates) {
+    this.reloadSettings();
+    const current = this.getWebsiteConfig();
+    this.settings.websiteConfig = {
+      ...current,
+      ...updates
+    };
+    this.saveSettings();
+    return this.settings.websiteConfig;
   }
 
   getAdminRole() {

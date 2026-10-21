@@ -279,23 +279,28 @@ class AdminVerifyFlow {
     }
 
     const buyerEmbed = new EmbedBuilder()
-      .setTitle(`🎉 Order #${order.id} Approved & Delivered!`)
+      .setTitle(`🎉 Purchase Verified — License Key Delivered!`)
       .setColor(0x2ecc71)
+      .setAuthor({
+        name: `${settings.storeName || 'White X Store'} • Automated Delivery Engine`,
+        iconURL: settings.shopPage?.thumbnailUrl || 'https://i.imgur.com/8Qe87dE.png'
+      })
       .setDescription(
-        `Your payment for **${product.name}** has been verified and approved by our staff team!\n` +
-        `Thank you for shopping with **${settings.storeName || 'White X Store'}**!`
+        `╭──────────────────────────────────────────╮\n` +
+        `  👑  **THANK YOU FOR YOUR PURCHASE!**\n` +
+        `  *Your order has been verified & processed in 0s*\n` +
+        `╰──────────────────────────────────────────╯\n\n` +
+        `> 📦 **Product:** \`${product.name}\`\n` +
+        `> ⏳ **Plan Duration:** \`${order.planDuration || '30 Days'}\`\n` +
+        `> 🧾 **Order ID:** \`#${order.id}\`\n` +
+        `> 🛡️ **Anti-Ban Protection:** Active & Monitored\n\n` +
+        `┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n` +
+        `  🔑 **YOUR OFFICIAL LICENSE KEY:**\n` +
+        `  \`\`\`${licenseKey}\`\`\`\n` +
+        `  *(Click to reveal: ||${licenseKey}||)*\n` +
+        `┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n`
       )
-      .addFields(
-        {
-          name: '🔑 Your License Key',
-          value: `\`\`\`${licenseKey}\`\`\`\n*(Click to reveal: ||${licenseKey}||)*`,
-          inline: false
-        },
-        { name: '📦 Product', value: `${product.name}`, inline: true },
-        { name: '⏳ Plan Duration', value: `${order.planDuration || '30 Days'}`, inline: true },
-        { name: '🧾 Order ID', value: `\`#${order.id}\``, inline: true }
-      )
-      .setFooter({ text: 'Keep this license key safe & do not share it!' })
+      .setFooter({ text: `${settings.storeName || 'White X Store'} • Do NOT share your key • 24/7 Support` })
       .setTimestamp();
 
     if (product.downloadUrl) {

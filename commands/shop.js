@@ -49,21 +49,34 @@ module.exports = {
       ? parseInt(shopPage.color.replace('#', ''), 16)
       : 0x00d2ff;
 
+    const defaultDesc = 
+      `╭──────────────────────────────────────────╮\n` +
+      `  👑  **${storeName.toUpperCase()} — OFFICIAL MARKETPLACE**\n` +
+      `  *Your #1 Trusted Destination for Undetected Panels*\n` +
+      `╰──────────────────────────────────────────╯\n\n` +
+      `> ⚡ **0s Instant Key Delivery** • 🛡️ **Kernel Anti-Ban** • 💳 **Multi-Currency**\n\n` +
+      `### 🛒 𝗛𝗢𝗪 𝗧𝗢 𝗣𝗨𝗥𝗖𝗛𝗔𝗦𝗘 / 𝗞𝗔𝗜𝗦𝗘 𝗞𝗛𝗔𝗥𝗜𝗗𝗘𝗜𝗡:\n` +
+      `**1️⃣ Select Your Cheat:** Niche diye gaye menu se product choose karein.\n` +
+      `**2️⃣ Review Features & Status:** Private Live Card mein live status aur duration prices dekhein.\n` +
+      `**3️⃣ 0-Second Delivery:** UPI QR, Card, Crypto ya Wallet se pay karke key DM mein turant payein!\n\n` +
+      `──────────────────────────────────────────\n` +
+      `### 🚦 𝗟𝗜𝗩𝗘 𝗦𝗧𝗔𝗧𝗨𝗦 𝗜𝗡𝗗𝗜𝗖𝗔𝗧𝗢𝗥𝗦:\n` +
+      `• 🟢 **Safe / Undetected** : Fully Working *(Safe for Main Account)*\n` +
+      `• 🟡 **Maintenance** : Under update *(Wait for announcement)*\n` +
+      `• 🔴 **Patched / Offline** : Detected *(Do NOT buy or use right now)*\n\n` +
+      `──────────────────────────────────────────\n` +
+      `### 💳 𝗪𝗔𝗟𝗟𝗘𝗧 & 𝟭-𝗦𝗘𝗖𝗢𝗡𝗗 𝗖𝗛𝗘𝗖𝗞𝗢𝗨𝗧:\n` +
+      `• Click **\`💳 My Wallet\`** below to check your current funds anytime.\n` +
+      `• Click **\`➕ Add Balance / Top-up\`** to deposit funds and checkout with 1-click!`;
+
     const embed = new EmbedBuilder()
       .setColor(color)
       .setAuthor({
         name: `${storeName} • Official Automated Marketplace`,
         iconURL: shopPage.thumbnailUrl || 'https://i.imgur.com/8Qe87dE.png'
       })
-      .setTitle(shopPage.title || '⚡ 𝐖𝐇𝐈𝐓𝐄 𝐗 𝐒𝐓𝐎𝐑𝐄 — 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋 𝐂𝐀𝐓𝐀𝐋𝐎𝐆 ⚡')
-      .setDescription(
-        shopPage.description ||
-          '> ⚡ **Instant Key Delivery** • 🛡️ **Anti-Ban Protected** • 💳 **Instant UPI / Cards / Wallet**\n\n' +
-          '### 🛒 𝗛𝗢𝗪 𝗧𝗢 𝗣𝗨𝗥𝗖𝗛𝗔𝗦𝗘 / 𝗞𝗔𝗜𝗦𝗘 𝗞𝗛𝗔𝗥𝗜𝗗𝗘𝗜𝗡:\n' +
-          '**1️⃣ Select Your Cheat:** Choose your desired panel from the dropdown menu below.\n' +
-          '**2️⃣ Review Features & Status:** Inspect live pricing & anti-cheat status in the private card.\n' +
-          '**3️⃣ 0-Second Delivery:** Pay via UPI QR, Cards, Crypto or Wallet for instant key delivery!'
-      )
+      .setTitle(shopPage.title || `⚡ 𝐖𝐇𝐈𝐓𝐄 𝐗 𝐒𝐓𝐎𝐑𝐄 — 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋 𝐂𝐀𝐓𝐀𝐋𝐎𝐆 ⚡`)
+      .setDescription(shopPage.description && shopPage.description.trim() ? shopPage.description : defaultDesc)
       .setFooter({
         text: shopPage.footer || `${storeName} • Select a product below to start • 24/7 Automated Delivery`
       })

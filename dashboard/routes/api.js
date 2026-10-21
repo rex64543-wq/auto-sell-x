@@ -192,9 +192,93 @@ module.exports = function (client) {
   });
 
   // ------------------------------------------
+  // 0B. PUBLIC STOREFRONT DATA (NO AUTH NEEDED)
+  // ------------------------------------------
+  router.get('/public/store-data', (req, res) => {
+    try {
+      const websiteConfig = db.getWebsiteConfig();
+      const products = db.getProducts();
+      const stock = db.stock || {};
+      const currencies = db.getCurrencies();
+      const defaultCurrency = db.getDefaultCurrency();
+      const currencyRates = db.getCurrencyRates();
+      const paymentMethods = db.getPaymentMethods();
+      const settings = db.getSettings();
+
+      const publicProducts = Object.values(products).map(p => ({
+        id: p.id,
+        name: p.name,
+        category: p.category || 'PC',
+        version: p.version || 'v1.0',
+        status: p.status || 'safe',
+        description: p.description || '',
+        features: p.features || [],
+        plans: p.plans || {},
+        price: p.price,
+        currency: p.currency || '₹',
+        stockCount: stock[p.id.toLowerCase()] ? stock[p.id.toLowerCase()].length : 0,
+        deliveryType: p.deliveryType || 'stock',
+        downloadUrl: p.downloadUrl || null,
+        instructions: p.instructions || null
+      }));
+
+      const safePaymentMethods = {};
+      Object.entries(paymentMethods || {}).forEach(([k, v]) => {
+        if (v && v.enabled) {
+          safePaymentMethods[k] = {
+            name: v.name,
+            emoji: v.emoji || '💳',
+            currency: v.currency || 'INR',
+            details: v.details || '',
+            upiId: v.upiId || '',
+            payeeName: v.payeeName || '',
+            number: v.number || '',
+            paymentLink: v.paymentLink || '',
+            qrCodeUrl: v.qrCodeUrl || v.qrCode || ''
+          };
+        }
+      });
+
+      res.json({
+        success: true,
+        websiteConfig,
+        products: publicProducts,
+        currencies,
+        defaultCurrency,
+        currencyRates,
+        paymentMethods: safePaymentMethods,
+        storeName: websiteConfig?.storeName || settings.storeName || 'White X Store',
+        botOnline: Boolean(client && client.isReady && client.isReady())
+      });
+    } catch (err) {
+      console.error('Public store data error:', err);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  router.get('/website-config', (req, res) => {
+    try {
+      res.json({ success: true, websiteConfig: db.getWebsiteConfig() });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // ------------------------------------------
   // PROTECTED ENDPOINTS (REQUIRE AUTHENTICATION)
   // ------------------------------------------
   router.use(security.requireAuth);
+
+  // Website Configuration Update (Admin Only)
+  router.put('/website-config', (req, res) => {
+    try {
+      const updates = req.body;
+      const updated = db.updateWebsiteConfig(updates);
+      res.json({ success: true, websiteConfig: updated });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
 
   // 1. Bot Connection Status & KPI
   router.get('/status', (req, res) => {
@@ -817,22 +901,36 @@ module.exports = function (client) {
         ? parseInt(shopPage.color.replace('#', ''), 16)
         : 0x00d2ff;
 
+      const storeName = settings.storeName || 'White X Store';
+      const defaultDesc = 
+        `╭──────────────────────────────────────────╮\n` +
+        `  👑  **${storeName.toUpperCase()} — OFFICIAL MARKETPLACE**\n` +
+        `  *Your #1 Trusted Destination for Undetected Panels*\n` +
+        `╰──────────────────────────────────────────╯\n\n` +
+        `> ⚡ **0s Instant Key Delivery** • 🛡️ **Kernel Anti-Ban** • 💳 **Multi-Currency**\n\n` +
+        `### 🛒 𝗛𝗢𝗪 𝗧𝗢 𝗣𝗨𝗥𝗖𝗛𝗔𝗦𝗘 / 𝗞𝗔𝗜𝗦𝗘 𝗞𝗛𝗔𝗥𝗜𝗗𝗘𝗜𝗡:\n` +
+        `**1️⃣ Select Your Cheat:** Niche diye gaye menu se product choose karein.\n` +
+        `**2️⃣ Review Features & Status:** Private Live Card mein live status aur duration prices dekhein.\n` +
+        `**3️⃣ 0-Second Delivery:** UPI QR, Card, Crypto ya Wallet se pay karke key DM mein turant payein!\n\n` +
+        `──────────────────────────────────────────\n` +
+        `### 🚦 𝗟𝗜𝗩𝗘 𝗦𝗧𝗔𝗧𝗨𝗦 𝗜𝗡𝗗𝗜𝗖𝗔𝗧𝗢𝗥𝗦:\n` +
+        `• 🟢 **Safe / Undetected** : Fully Working *(Safe for Main Account)*\n` +
+        `• 🟡 **Maintenance** : Under update *(Wait for announcement)*\n` +
+        `• 🔴 **Patched / Offline** : Detected *(Do NOT buy or use right now)*\n\n` +
+        `──────────────────────────────────────────\n` +
+        `### 💳 𝗪𝗔𝗟𝗟𝗘𝗧 & 𝟭-𝗦𝗘𝗖𝗢𝗡𝗗 𝗖𝗛𝗘𝗖𝗞𝗢𝗨𝗧:\n` +
+        `• Click **\`💳 My Wallet\`** below to check your current funds anytime.\n` +
+        `• Click **\`➕ Add Balance / Top-up\`** to deposit funds and checkout with 1-click!`;
+
       const embed = new EmbedBuilder()
         .setColor(color)
         .setAuthor({
-          name: `${settings.storeName || 'White X Store'} • Official Automated Marketplace`,
+          name: `${storeName} • Official Automated Marketplace`,
           iconURL: shopPage.thumbnailUrl || 'https://i.imgur.com/8Qe87dE.png'
         })
-        .setTitle(shopPage.title || '⚡ 𝐖𝐇𝐈𝐓𝐄 𝐗 𝐒𝐓𝐎𝐑𝐄 — 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋 𝐂𝐀𝐓𝐀𝐋𝐎𝐆 ⚡')
-        .setDescription(
-          shopPage.description ||
-            '> ⚡ **Instant Key Delivery** • 🛡️ **Anti-Ban Protected** • 💳 **Instant UPI / Cards / Wallet**\n\n' +
-            '### 🛒 𝗛𝗢𝗪 𝗧𝗢 𝗣𝗨𝗥𝗖𝗛𝗔𝗦𝗘 / 𝗞𝗔𝗜𝗦𝗘 𝗞𝗛𝗔𝗥𝗜𝗗𝗘𝗜𝗡:\n' +
-            '**1️⃣ Select Your Cheat:** Choose your desired panel from the dropdown menu below.\n' +
-            '**2️⃣ Review Features & Status:** Inspect live pricing & anti-cheat status in the private card.\n' +
-            '**3️⃣ 0-Second Delivery:** Pay via UPI QR, Cards, Crypto or Wallet for instant key delivery!'
-        )
-        .setFooter({ text: shopPage.footer || `${settings.storeName || 'White X Store'} • Select a product below to start • 24/7 Automated Delivery` })
+        .setTitle(shopPage.title || `⚡ 𝐖𝐇𝐈𝐓𝐄 𝐗 𝐒𝐓𝐎𝐑𝐄 — 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋 𝐂𝐀𝐓𝐀𝐋𝐎𝐆 ⚡`)
+        .setDescription(shopPage.description && shopPage.description.trim() ? shopPage.description : defaultDesc)
+        .setFooter({ text: shopPage.footer || `${storeName} • Select a product below to start • 24/7 Automated Delivery` })
         .setTimestamp();
 
       if (shopPage.thumbnailUrl) embed.setThumbnail(shopPage.thumbnailUrl);

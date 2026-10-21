@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>White X Store — Web Control Center & Dashboard</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -18,7 +20,7 @@
     <div class="login-box glass-card">
       <div class="login-header">
         <div class="login-shield-badge">
-          <span class="shield-icon">🛡️</span>
+          <img src="logo.png" alt="White X Store Logo" class="login-logo-img">
           <span class="security-status-dot"></span>
         </div>
         <h2 class="login-title">White X Store</h2>
@@ -90,7 +92,9 @@
     <aside class="sidebar">
       <div class="sidebar-header">
         <div class="logo-box">
-          <span class="logo-icon">⚡</span>
+          <div class="logo-icon">
+            <img src="logo.png" alt="White X Store Logo" class="logo-img">
+          </div>
           <div class="logo-text">
             <h2>White X Store</h2>
             <span class="badge-sub">Control Center</span>
@@ -128,6 +132,10 @@
           <span class="nav-icon">🔌</span>
           <span class="nav-label">API Connections</span>
         </a>
+        <a href="#discord-designer" class="nav-item" data-tab="discord-designer">
+          <span class="nav-icon">🎨</span>
+          <span class="nav-label">Discord Embed Designer</span>
+        </a>
         <a href="#broadcast" class="nav-item" data-tab="broadcast">
           <span class="nav-icon">🚀</span>
           <span class="nav-label">Discord Deploy</span>
@@ -158,6 +166,9 @@
           <p id="pageSubtitle">Live statistics, sales analytics, and pending verification requests.</p>
         </div>
         <div class="top-actions">
+          <button class="btn btn-secondary btn-sm" onclick="switchTab('discord-designer')" style="border: 1px solid rgba(0, 229, 255, 0.4); color: #00e5ff; font-weight: 600;">
+            <span class="btn-icon">🎨</span> Embed Designer
+          </button>
           <button class="btn btn-secondary btn-sm" id="btnRefreshData">
             <span class="btn-icon">🔄</span> Refresh
           </button>
@@ -742,6 +753,270 @@
                 </tbody>
               </table>
             </div>
+          </div>
+        </section>
+
+        <!-- ===================================== -->
+        <!-- 9. DISCORD BOT EMBED DESIGNER & CMS   -->
+        <!-- ===================================== -->
+        <section id="view-discord-designer" class="view-section">
+          <!-- CMS HERO BANNER -->
+          <div class="overview-hero" style="margin-bottom: 24px;">
+            <div class="hero-content">
+              <div class="hero-badge">
+                <span class="pulse-dot-cyan"></span>
+                <span>Discord Bot Embed Visual Studio</span>
+              </div>
+              <h2 class="hero-title">🎨 Discord Bot Embed Designer &amp; Live Visual Editor</h2>
+              <p class="hero-subtitle">
+                Customize the exact appearance, banner, colors, title, and buttons that the Discord bot posts in your server.
+                Preview updates in real time on the right side Discord dark mode simulator!
+              </p>
+            </div>
+            <div class="hero-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button type="button" class="btn btn-secondary" onclick="deployShopEmbedFromDesigner()">
+                <span class="btn-icon">🚀</span> Deploy to Discord Channel
+              </button>
+              <button type="button" class="btn btn-primary" onclick="saveDiscordDesignerData()">
+                <span class="btn-icon">💾</span> Save Bot Embed Settings
+              </button>
+            </div>
+          </div>
+
+          <!-- STATUS ALERT -->
+          <div id="discordDesignerAlert" class="alert-box alert-success" style="display: none; margin-bottom: 20px;">
+            <span class="alert-icon">✅</span>
+            <span id="discordDesignerAlertMsg">Discord bot embed settings saved successfully!</span>
+          </div>
+
+          <!-- TWO-COLUMN DESIGNER GRID -->
+          <div class="designer-two-col-grid">
+            
+            <!-- LEFT COLUMN: EDITABLE CONTROLS -->
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+              
+              <!-- Card 1: Branding & Embed Colors -->
+              <div class="card glass-card">
+                <div class="card-header">
+                  <h3>👑 Store Branding &amp; Embed Color</h3>
+                </div>
+                <div class="card-body">
+                  <div class="form-row">
+                    <div class="form-group flex-1">
+                      <label>Store Name <span style="color: var(--accent-rose);">*</span></label>
+                      <input type="text" id="dsStoreName" class="form-input" placeholder="White X Store" oninput="updateDiscordEmbedPreview()">
+                    </div>
+                    <div class="form-group flex-1">
+                      <label>Embed Accent Color</label>
+                      <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="color" id="dsEmbedColorPicker" value="#00d2ff" style="width: 44px; height: 38px; border: none; border-radius: 8px; cursor: pointer; background: transparent;" oninput="document.getElementById('dsEmbedColor').value = this.value; updateDiscordEmbedPreview();">
+                        <input type="text" id="dsEmbedColor" class="form-input" value="#00d2ff" style="flex: 1; font-family: var(--font-mono);" oninput="document.getElementById('dsEmbedColorPicker').value = this.value; updateDiscordEmbedPreview();">
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Quick Color Swatches -->
+                  <div style="display: flex; gap: 8px; align-items: center; margin-top: 6px; flex-wrap: wrap;">
+                    <small class="muted" style="font-size: 11px;">Presets:</small>
+                    <button type="button" class="btn btn-sm" style="background: rgba(0,210,255,0.2); color: #00d2ff; border: 1px solid #00d2ff; padding: 2px 8px; font-size: 11px;" onclick="setDesignerColor('#00d2ff')">Electric Cyan</button>
+                    <button type="button" class="btn btn-sm" style="background: rgba(139,92,246,0.2); color: #8b5cf6; border: 1px solid #8b5cf6; padding: 2px 8px; font-size: 11px;" onclick="setDesignerColor('#8b5cf6')">Neon Purple</button>
+                    <button type="button" class="btn btn-sm" style="background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid #10b981; padding: 2px 8px; font-size: 11px;" onclick="setDesignerColor('#10b981')">Emerald Safe</button>
+                    <button type="button" class="btn btn-sm" style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid #f59e0b; padding: 2px 8px; font-size: 11px;" onclick="setDesignerColor('#f59e0b')">Gold Amber</button>
+                    <button type="button" class="btn btn-sm" style="background: rgba(244,63,94,0.2); color: #f43f5e; border: 1px solid #f43f5e; padding: 2px 8px; font-size: 11px;" onclick="setDesignerColor('#f43f5e')">Crimson Rose</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 2: Embed Header & Media -->
+              <div class="card glass-card">
+                <div class="card-header">
+                  <h3>🖼️ Discord Embed Header &amp; Media</h3>
+                </div>
+                <div class="card-body">
+                  <div class="form-row">
+                    <div class="form-group flex-1">
+                      <label>Author Line / Marketplace Tagline</label>
+                      <input type="text" id="dsAuthorName" class="form-input" placeholder="White X Store • Official Automated Marketplace" oninput="updateDiscordEmbedPreview()">
+                    </div>
+                    <div class="form-group flex-1">
+                      <label>Author Small Icon URL</label>
+                      <input type="text" id="dsAuthorIcon" class="form-input" placeholder="logo.png or image URL" oninput="updateDiscordEmbedPreview()">
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>First Page Embed Title</label>
+                    <input type="text" id="dsEmbedTitle" class="form-input" placeholder="⚡ 𝐖𝐇𝐈𝐓𝐄 𝐗 𝐒𝐓𝐎𝐑𝐄 — 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋 𝐂𝐀𝐓𝐀𝐋𝐎𝐆 ⚡" oninput="updateDiscordEmbedPreview()">
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group flex-1">
+                      <label>Thumbnail Image URL (Top-Right)</label>
+                      <input type="text" id="dsThumbnailUrl" class="form-input" placeholder="logo.png or image URL" oninput="updateDiscordEmbedPreview()">
+                    </div>
+                    <div class="form-group flex-1">
+                      <label>Banner Image / Video GIF URL (Bottom)</label>
+                      <input type="text" id="dsBannerUrl" class="form-input" placeholder="https://i.imgur.com/8Qe87dE.png" oninput="updateDiscordEmbedPreview()">
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Footer Text</label>
+                    <input type="text" id="dsFooterText" class="form-input" placeholder="White X Store • Select a product below to start • 24/7 Automated Delivery" oninput="updateDiscordEmbedPreview()">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 3: Embed Description Formatting -->
+              <div class="card glass-card">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                  <div>
+                    <h3>📝 Discord Embed Description (Markdown)</h3>
+                    <small class="muted">Supports Discord markdown: **bold**, *italic*, > quotes, and ASCII frames</small>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <!-- Quick Preset Insert Bar -->
+                  <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;">
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="insertDesignerSnippet('frame')">+ Header Frame</button>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="insertDesignerSnippet('steps')">+ 3-Step Guide</button>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="insertDesignerSnippet('status')">+ Status Indicators</button>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="insertDesignerSnippet('wallet')">+ Wallet Notice</button>
+                    <button type="button" class="btn btn-sm btn-secondary" style="color: #00d2ff; border-color: rgba(0,210,255,0.4);" onclick="insertDesignerSnippet('restore')">🔄 Restore Pro Template</button>
+                  </div>
+
+                  <div class="form-group">
+                    <textarea id="dsEmbedDescription" class="form-input" rows="12" style="font-family: var(--font-mono); font-size: 13px; line-height: 1.5;" oninput="updateDiscordEmbedPreview()"></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 4: Deal & Payment Instructions -->
+              <div class="card glass-card">
+                <div class="card-header">
+                  <h3>🤝 Deal &amp; Payment Screen Instructions</h3>
+                  <p class="muted">Instructions displayed in Discord during interactive checkout and payment proof submission.</p>
+                </div>
+                <div class="card-body">
+                  <div class="form-group">
+                    <label>Deal Confirmation Instructions</label>
+                    <textarea id="dsDealInstructions" class="form-input" rows="3" placeholder="Instructions shown on Deal page..."></textarea>
+                  </div>
+
+                  <div class="form-group">
+                    <label>UPI &amp; QR Code Instructions</label>
+                    <textarea id="dsUpiInstructions" class="form-input" rows="3" placeholder="UPI payment guide..."></textarea>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Card Payment Instructions</label>
+                    <textarea id="dsCardInstructions" class="form-input" rows="3" placeholder="Card checkout instructions..."></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 5: Target Discord Channel & Deploy -->
+              <div class="card glass-card">
+                <div class="card-header">
+                  <h3>🚀 Deploy Directly To Discord</h3>
+                </div>
+                <div class="card-body">
+                  <div class="form-group">
+                    <label>Target Discord Shop Channel ID</label>
+                    <input type="text" id="dsTargetChannelId" class="form-input" placeholder="e.g. 1560165792195149925">
+                    <small class="muted">Where the official bot shop catalog will be posted in your Discord server.</small>
+                  </div>
+
+                  <div style="display: flex; gap: 12px; margin-top: 16px;">
+                    <button type="button" class="btn btn-primary btn-block" onclick="saveDiscordDesignerData()">
+                      <span class="btn-icon">💾</span> Save All Bot Embed Settings
+                    </button>
+                    <button type="button" class="btn btn-gradient btn-block" onclick="deployShopEmbedFromDesigner()">
+                      <span class="btn-icon">🚀</span> Deploy Shop to Discord
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN: STICKY LIVE DISCORD DARK MODE PREVIEW -->
+            <div>
+              <div class="discord-preview-panel">
+                
+                <div class="discord-preview-header-bar">
+                  <span class="discord-channel-tag">
+                    <span style="font-size: 16px;">#</span>
+                    <span>🛒-shop-catalog</span>
+                  </span>
+                  <span style="font-size: 11px; color: #949ba4; font-weight: 600;">LIVE DISCORD PREVIEW</span>
+                </div>
+
+                <!-- Simulated Discord Message -->
+                <div class="discord-msg-header">
+                  <img src="logo.png" alt="Bot Avatar" class="discord-bot-avatar" id="prevBotAvatar">
+                  <div>
+                    <div class="discord-bot-title-row">
+                      <span class="discord-bot-name" id="prevBotName">White X Store</span>
+                      <span class="discord-bot-badge">BOT</span>
+                    </div>
+                    <span class="discord-msg-timestamp">Today at 12:30 PM</span>
+                  </div>
+                </div>
+
+                <!-- Simulated Embed Card -->
+                <div class="discord-embed-card" id="prevEmbedCard">
+                  
+                  <!-- Author Row -->
+                  <div class="discord-embed-author" id="prevAuthorRow">
+                    <img src="logo.png" alt="Author Icon" class="discord-embed-author-icon" id="prevAuthorIcon">
+                    <span id="prevAuthorName">White X Store • Official Automated Marketplace</span>
+                  </div>
+
+                  <!-- Floating Thumbnail Image -->
+                  <img src="https://i.imgur.com/8Qe87dE.png" alt="Thumbnail" class="discord-embed-thumb" id="prevThumbnailImg">
+
+                  <!-- Title Row -->
+                  <div class="discord-embed-title" id="prevEmbedTitle">
+                    ⚡ 𝐖𝐇𝐈𝐓𝐄 𝐗 𝐒𝐓𝐎𝐑𝐄 — 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋 𝐂𝐀𝐓𝐀𝐋𝐎𝐆 ⚡
+                  </div>
+
+                  <!-- Description Body -->
+                  <div class="discord-embed-desc" id="prevEmbedDesc">
+                    <!-- Populated live via JS -->
+                  </div>
+
+                  <!-- Banner Image -->
+                  <img src="https://i.imgur.com/8Qe87dE.png" alt="Banner" class="discord-embed-banner" id="prevBannerImg">
+
+                  <!-- Footer -->
+                  <div class="discord-embed-footer" id="prevFooterRow">
+                    <span id="prevFooterText">White X Store • Select a product below to start • 24/7 Automated Delivery</span>
+                    <span>• Today at 12:30 PM</span>
+                  </div>
+
+                </div>
+
+                <!-- Simulated Discord Interactive Components -->
+                <div class="discord-interactive-row">
+                  <!-- Select Menu Preview -->
+                  <div class="discord-select-menu-fake">
+                    <span>🛒 Select a Product / Panel to view details...</span>
+                    <span>▼</span>
+                  </div>
+
+                  <!-- Buttons Row Preview -->
+                  <div class="discord-buttons-row-fake">
+                    <span class="discord-btn-fake discord-btn-blue">💳 My Wallet</span>
+                    <span class="discord-btn-fake discord-btn-green">➕ Add Balance</span>
+                    <span class="discord-btn-fake discord-btn-grey">📊 Live Status</span>
+                    <span class="discord-btn-fake discord-btn-grey">❓ Help &amp; Guide</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
           </div>
         </section>
 
