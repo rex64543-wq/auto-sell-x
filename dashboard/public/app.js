@@ -46,6 +46,18 @@ let state = {
 let pollInterval = null;
 let isInitialized = false;
 
+// Global HTML Escape Utility
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+window.escapeHtml = escapeHtml;
+
 // ------------------------------------------
 // Initialization & Security Gate
 // ------------------------------------------
@@ -1772,18 +1784,49 @@ function setupEventHandlers() {
   if (vmForm) {
     vmForm.addEventListener('submit', saveVariantMappingForm);
   }
+
+  // Redeem Code Toolbar Buttons & Forms
+  const btnNewRedeem = document.getElementById('btnOpenNewRedeem');
+  if (btnNewRedeem) {
+    btnNewRedeem.addEventListener('click', () => openNewRedeemModal());
+  }
+
+  const btnBulkRedeem = document.getElementById('btnOpenBulkRedeem');
+  if (btnBulkRedeem) {
+    btnBulkRedeem.addEventListener('click', () => openBulkRedeemModal());
+  }
+
+  const redeemForm = document.getElementById('redeemCodeForm');
+  if (redeemForm) {
+    redeemForm.addEventListener('submit', handleCreateRedeemCode);
+  }
+
+  const bulkRedeemForm = document.getElementById('bulkRedeemForm');
+  if (bulkRedeemForm) {
+    bulkRedeemForm.addEventListener('submit', handleBulkCreateRedeemCodes);
+  }
 }
 
 // ------------------------------------------
 // Modal Helpers
 // ------------------------------------------
 function openModal(id) {
-  document.getElementById(id).classList.add('active');
+  const modal = document.getElementById(id);
+  if (modal) {
+    modal.classList.add('active');
+    modal.style.display = 'flex';
+  }
 }
 
 function closeModal(id) {
-  document.getElementById(id).classList.remove('active');
+  const modal = document.getElementById(id);
+  if (modal) {
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+  }
 }
+window.openModal = openModal;
+window.closeModal = closeModal;
 
 function openNewProductModal() {
   document.getElementById('productModalTitle').textContent = 'Add New Product / Panel';
@@ -3535,25 +3578,45 @@ function filterRedeemCodesTable() {
   renderRedeemCodesTable(filtered);
 }
 
-function openNewRedeemModal() {
+async function openNewRedeemModal() {
   const select = document.getElementById('redeemProductSelect');
-  if (select && state.products) {
+  if (!Array.isArray(state.products) || state.products.length === 0) {
+    try {
+      const res = await fetch('/api/products');
+      const data = await res.json();
+      if (Array.isArray(data)) state.products = data;
+    } catch (err) {
+      console.error('Failed to load products for redeem modal:', err);
+    }
+  }
+
+  if (select && Array.isArray(state.products) && state.products.length > 0) {
     select.innerHTML = state.products
       .map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)} (${escapeHtml(p.category || 'Cheat')})</option>`)
       .join('');
     updateRedeemPlanOptions();
+  } else if (select) {
+    select.innerHTML = '<option value="">No products available</option>';
   }
+
   setRedeemType('item');
-  document.getElementById('redeemCustomCode').value = '';
-  document.getElementById('redeemMaxUses').value = '1';
-  document.getElementById('redeemExpiryDays').value = '';
-  document.getElementById('redeemNote').value = '';
-  document.getElementById('redeemWalletAmount').value = '';
+  const customCodeInput = document.getElementById('redeemCustomCode');
+  if (customCodeInput) customCodeInput.value = '';
+  const maxUsesInput = document.getElementById('redeemMaxUses');
+  if (maxUsesInput) maxUsesInput.value = '1';
+  const expiryDaysInput = document.getElementById('redeemExpiryDays');
+  if (expiryDaysInput) expiryDaysInput.value = '';
+  const noteInput = document.getElementById('redeemNote');
+  if (noteInput) noteInput.value = '';
+  const walletAmountInput = document.getElementById('redeemWalletAmount');
+  if (walletAmountInput) walletAmountInput.value = '';
+
   openModal('redeemModal');
 }
 
 function setRedeemType(type) {
-  document.getElementById('redeemType').value = type;
+  const typeInput = document.getElementById('redeemType');
+  if (typeInput) typeInput.value = type;
   const isItem = type === 'item';
   const itemGrp = document.getElementById('redeemItemGroup');
   const walletGrp = document.getElementById('redeemWalletGroup');
@@ -3578,10 +3641,14 @@ function setRedeemType(type) {
 function updateRedeemPlanOptions() {
   const prodId = document.getElementById('redeemProductSelect')?.value;
   const planSelect = document.getElementById('redeemPlanSelect');
-  if (!planSelect || !prodId || !state.products) return;
+  if (!planSelect) return;
+  if (!prodId || !Array.isArray(state.products)) {
+    planSelect.innerHTML = '<option value="30d">30 Days</option>';
+    return;
+  }
 
   const product = state.products.find(p => p.id === prodId);
-  if (!product || !product.plans) {
+  if (!product || !product.plans || Object.keys(product.plans).length === 0) {
     planSelect.innerHTML = '<option value="30d">30 Days</option>';
     return;
   }
@@ -3594,11 +3661,14 @@ function updateRedeemPlanOptions() {
 function generateRandomRedeemCodeField() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const rand = len => Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-  document.getElementById('redeemCustomCode').value = `WX-${rand(4)}-${rand(4)}-${rand(4)}`;
+  const input = document.getElementById('redeemCustomCode');
+  if (input) {
+    input.value = `WX-${rand(4)}-${rand(4)}-${rand(4)}`;
+  }
 }
 
 async function handleCreateRedeemCode(e) {
-  e.preventDefault();
+  if (e && e.preventDefault) e.preventDefault();
   const type = document.getElementById('redeemType')?.value || 'item';
   const productId = document.getElementById('redeemProductSelect')?.value;
   const planKey = document.getElementById('redeemPlanSelect')?.value;
@@ -3607,6 +3677,23 @@ async function handleCreateRedeemCode(e) {
   const maxUses = document.getElementById('redeemMaxUses')?.value;
   const expiryDays = Number(document.getElementById('redeemExpiryDays')?.value) || 0;
   const note = document.getElementById('redeemNote')?.value.trim();
+
+  if (type === 'item' && !productId) {
+    alert('Please select a product/cheat for the item code.');
+    return;
+  }
+
+  if (type === 'wallet' && amount <= 0) {
+    alert('Please enter a valid wallet balance amount (minimum ₹1).');
+    return;
+  }
+
+  const submitBtn = document.getElementById('btnSaveRedeemCode');
+  const originalBtnText = submitBtn ? submitBtn.innerHTML : '';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '⏳ Generating...';
+  }
 
   let expiresAt = null;
   if (expiryDays > 0) {
@@ -3631,7 +3718,7 @@ async function handleCreateRedeemCode(e) {
       })
     });
     const data = await res.json();
-    if (data.success) {
+    if (data.success && data.code) {
       showToast(`🎁 Redeem code created: ${data.code.code}`, 'success');
       closeModal('redeemModal');
       loadRedeemCodes();
@@ -3641,31 +3728,59 @@ async function handleCreateRedeemCode(e) {
   } catch (err) {
     console.error('Error creating redeem code:', err);
     alert('Request failed: ' + err.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnText;
+    }
   }
 }
 
-function openBulkRedeemModal() {
+async function openBulkRedeemModal() {
   const select = document.getElementById('bulkProductSelect');
-  if (select && state.products) {
+  if (!Array.isArray(state.products) || state.products.length === 0) {
+    try {
+      const res = await fetch('/api/products');
+      const data = await res.json();
+      if (Array.isArray(data)) state.products = data;
+    } catch (err) {
+      console.error('Failed to load products for bulk redeem modal:', err);
+    }
+  }
+
+  if (select && Array.isArray(state.products) && state.products.length > 0) {
     select.innerHTML = state.products
       .map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)} (${escapeHtml(p.category || 'Cheat')})</option>`)
       .join('');
     updateBulkPlanOptions();
+  } else if (select) {
+    select.innerHTML = '<option value="">No products available</option>';
   }
+
   setBulkRedeemType('item');
-  document.getElementById('bulkCount').value = '5';
-  document.getElementById('bulkPrefix').value = 'GIFT';
-  document.getElementById('bulkMaxUses').value = '1';
-  document.getElementById('bulkExpiryDays').value = '';
-  document.getElementById('bulkNote').value = '';
-  document.getElementById('bulkWalletAmount').value = '';
-  document.getElementById('bulkResultContainer').style.display = 'none';
-  document.getElementById('bulkOutputArea').value = '';
+  const countInput = document.getElementById('bulkCount');
+  if (countInput) countInput.value = '5';
+  const prefixInput = document.getElementById('bulkPrefix');
+  if (prefixInput) prefixInput.value = 'GIFT';
+  const maxUsesInput = document.getElementById('bulkMaxUses');
+  if (maxUsesInput) maxUsesInput.value = '1';
+  const expiryDaysInput = document.getElementById('bulkExpiryDays');
+  if (expiryDaysInput) expiryDaysInput.value = '';
+  const noteInput = document.getElementById('bulkNote');
+  if (noteInput) noteInput.value = '';
+  const walletAmountInput = document.getElementById('bulkWalletAmount');
+  if (walletAmountInput) walletAmountInput.value = '';
+  const resultContainer = document.getElementById('bulkResultContainer');
+  if (resultContainer) resultContainer.style.display = 'none';
+  const outputArea = document.getElementById('bulkOutputArea');
+  if (outputArea) outputArea.value = '';
+
   openModal('bulkRedeemModal');
 }
 
 function setBulkRedeemType(type) {
-  document.getElementById('bulkType').value = type;
+  const typeInput = document.getElementById('bulkType');
+  if (typeInput) typeInput.value = type;
   const isItem = type === 'item';
   const itemGrp = document.getElementById('bulkItemGroup');
   const walletGrp = document.getElementById('bulkWalletGroup');
@@ -3690,10 +3805,14 @@ function setBulkRedeemType(type) {
 function updateBulkPlanOptions() {
   const prodId = document.getElementById('bulkProductSelect')?.value;
   const planSelect = document.getElementById('bulkPlanSelect');
-  if (!planSelect || !prodId || !state.products) return;
+  if (!planSelect) return;
+  if (!prodId || !Array.isArray(state.products)) {
+    planSelect.innerHTML = '<option value="30d">30 Days</option>';
+    return;
+  }
 
   const product = state.products.find(p => p.id === prodId);
-  if (!product || !product.plans) {
+  if (!product || !product.plans || Object.keys(product.plans).length === 0) {
     planSelect.innerHTML = '<option value="30d">30 Days</option>';
     return;
   }
@@ -3704,7 +3823,7 @@ function updateBulkPlanOptions() {
 }
 
 async function handleBulkCreateRedeemCodes(e) {
-  e.preventDefault();
+  if (e && e.preventDefault) e.preventDefault();
   const count = Number(document.getElementById('bulkCount')?.value) || 5;
   const prefix = document.getElementById('bulkPrefix')?.value.trim() || 'GIFT';
   const type = document.getElementById('bulkType')?.value || 'item';
@@ -3714,6 +3833,23 @@ async function handleBulkCreateRedeemCodes(e) {
   const maxUses = Number(document.getElementById('bulkMaxUses')?.value) || 1;
   const expiryDays = Number(document.getElementById('bulkExpiryDays')?.value) || 0;
   const note = document.getElementById('bulkNote')?.value.trim();
+
+  if (type === 'item' && !productId) {
+    alert('Please select a product/cheat for the item codes.');
+    return;
+  }
+
+  if (type === 'wallet' && amount <= 0) {
+    alert('Please enter a valid wallet balance amount (minimum ₹1).');
+    return;
+  }
+
+  const submitBtn = e?.target ? e.target.querySelector('button[type="submit"]') : null;
+  const originalText = submitBtn ? submitBtn.innerHTML : '';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '⏳ Generating...';
+  }
 
   let expiresAt = null;
   if (expiryDays > 0) {
@@ -3751,21 +3887,51 @@ async function handleBulkCreateRedeemCodes(e) {
   } catch (err) {
     console.error('Error in bulk generate:', err);
     alert('Request failed: ' + err.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalText;
+    }
   }
 }
 
 function copyAllBulkCodes() {
   const text = document.getElementById('bulkOutputArea')?.value;
   if (!text) return;
-  navigator.clipboard.writeText(text).then(() => {
-    showToast('📋 All generated codes copied to clipboard!', 'success');
-  });
+  safeCopyToClipboard(text, '📋 All generated codes copied to clipboard!');
 }
 
 function copyRedeemCode(code) {
-  navigator.clipboard.writeText(code).then(() => {
-    showToast(`📋 Copied code: ${code}`, 'success');
-  });
+  if (!code) return;
+  safeCopyToClipboard(code, `📋 Copied code: ${code}`);
+}
+
+function safeCopyToClipboard(text, toastMsg = 'Copied to clipboard!') {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast(toastMsg, 'success');
+    }).catch(() => {
+      fallbackCopy(text, toastMsg);
+    });
+  } else {
+    fallbackCopy(text, toastMsg);
+  }
+}
+
+function fallbackCopy(text, toastMsg) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast(toastMsg, 'success');
+  } catch (err) {
+    prompt('Copy code manually:', text);
+  }
 }
 
 async function deleteRedeemCode(code) {
