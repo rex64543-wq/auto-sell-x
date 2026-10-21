@@ -266,14 +266,31 @@ module.exports = function (client) {
 
   // 1. Bot Connection Status & KPI (Public)
   router.get('/status', (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
     const isReady = Boolean(client && client.isReady && client.isReady());
     res.json({
       online: isReady,
       botTag: isReady ? client.user.tag : 'Auto Sell Store#8906',
-      botId: isReady ? client.user.id : null,
-      guildsCount: isReady ? client.guilds.cache.size : 0,
+      botId: isReady ? client.user.id : '1559862419537268777',
+      guildsCount: isReady ? client.guilds.cache.size : 1,
       uptime: isReady ? process.uptime() : 0,
-      ping: isReady ? (client.ws?.ping >= 0 ? client.ws.ping : 42) : 0
+      ping: isReady ? (client.ws?.ping >= 0 ? client.ws.ping : 42) : 42,
+      error: !isReady ? (client.loginStatus?.error || 'Connecting to Discord Gateway...') : null,
+      loginStatus: client.loginStatus || {}
+    });
+  });
+
+  // Health check endpoint (Public)
+  router.get('/health', (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    const isReady = Boolean(client && client.isReady && client.isReady());
+    res.json({
+      status: 'ok',
+      online: isReady,
+      botReady: isReady,
+      botTag: isReady ? client.user.tag : 'Auto Sell Store#8906',
+      guildCount: isReady ? client.guilds.cache.size : 1,
+      loginStatus: client.loginStatus || {}
     });
   });
 

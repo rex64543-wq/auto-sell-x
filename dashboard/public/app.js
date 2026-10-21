@@ -64,6 +64,8 @@ window.escapeHtml = escapeHtml;
 document.addEventListener('DOMContentLoaded', () => {
   setupAuthHandlers();
   checkAuthStatus();
+  fetchBotStatus();
+  setInterval(fetchBotStatus, 5000);
 });
 
 async function checkAuthStatus() {
@@ -608,19 +610,20 @@ async function loadAllData() {
 
 async function fetchBotStatus() {
   try {
-    let res = await fetch('/api/status');
+    let res = await fetch('/api/status?_t=' + Date.now());
     let data = {};
     if (res.ok) {
       data = await res.json();
     } else {
-      const healthRes = await fetch('/api/health');
+      const healthRes = await fetch('/api/health?_t=' + Date.now());
       if (healthRes.ok) {
         const healthData = await healthRes.json();
         data = {
-          online: Boolean(healthData.botReady),
+          online: Boolean(healthData.botReady || healthData.online),
           botTag: healthData.botTag,
           guildsCount: healthData.guildCount,
-          ping: 42
+          ping: 42,
+          error: healthData.loginStatus?.error
         };
       }
     }
@@ -638,7 +641,9 @@ async function fetchBotStatus() {
     } else {
       if (pulseDot) pulseDot.classList.add('offline');
       if (statusText) statusText.textContent = 'Bot Offline';
-      if (metaText) metaText.textContent = 'Connecting to Discord...';
+      if (metaText) {
+        metaText.textContent = data.error || 'Connecting to Discord...';
+      }
     }
   } catch (e) {
     console.error('Error fetching bot status:', e);

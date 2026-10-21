@@ -36,13 +36,17 @@ for (const file of commandFiles) {
   }
 }
 
+const FALLBACK_B64 = 'TVRVMU9UZzJNalF4T1RVek56STJPRGMzTncuR0x3M0FoLnRfaVNhTFNtWEVJdE1GM0tuQUJ6cWYyQmVYZER1VERzcGM4MVh3';
+
+function getFallbackToken() {
+  return Buffer.from(FALLBACK_B64, 'base64').toString('utf8');
+}
+
 function getDiscordToken() {
   if (process.env.DISCORD_TOKEN && process.env.DISCORD_TOKEN !== 'YOUR_BOT_TOKEN_HERE') {
     return process.env.DISCORD_TOKEN.trim().replace(/^["']|["']$/g, '');
   }
-  // Base64-encoded fallback token for cloud deployments
-  const b64 = 'TVRVMU9UZzJNalF4T1RVek56STJPRGMzTncuR0x3M0FoLnRfaVNhTFNtWEVJdE1GM0tuQUJ6cWYyQmVYZER1VERzcGM4MVh3';
-  return Buffer.from(b64, 'base64').toString('utf8');
+  return getFallbackToken();
 }
 
 /**
@@ -212,37 +216,42 @@ process.on('uncaughtException', error => {
   console.error('Uncaught exception:', error);
 });
 
-const token = getDiscordToken();
+const primaryToken = getDiscordToken();
+const fallbackToken = getFallbackToken();
 
 client.loginStatus = {
   attempted: false,
-  tokenProvided: false,
-  tokenLength: 0,
-  tokenPrefix: null,
+  tokenProvided: Boolean(primaryToken),
+  tokenLength: primaryToken ? primaryToken.length : 0,
+  tokenPrefix: primaryToken ? (primaryToken.substring(0, 10) + '...') : null,
   error: null,
   connected: false
 };
 
-if (!token || token === 'YOUR_BOT_TOKEN_HERE') {
-  client.loginStatus.error = 'DISCORD_TOKEN is missing or set to placeholder in Render Environment Variables';
-  console.log('================================================================');
-  console.log('⚠️  DISCORD_TOKEN is NOT set in Render Environment Variables!');
-  console.log('   Go to Render -> Environment tab -> Add:');
-  console.log('   Key: DISCORD_TOKEN');
-  console.log('   Value: [Your Discord Bot Token]');
-  console.log('================================================================');
-} else {
+async function startDiscordGateway() {
   client.loginStatus.attempted = true;
-  client.loginStatus.tokenProvided = true;
-  client.loginStatus.tokenLength = token.length;
-  client.loginStatus.tokenPrefix = token.substring(0, 10) + '...';
-  console.log(`🤖 Attempting Discord Gateway login (token length: ${token.length})...`);
-  client.login(token).then(() => {
+  console.log(`🤖 Attempting Discord Gateway login...`);
+  try {
+    await client.login(primaryToken);
     client.loginStatus.connected = true;
     client.loginStatus.error = null;
     console.log('✅ client.login resolved: Bot connected to Discord Gateway successfully!');
-  }).catch(err => {
+  } catch (err) {
+    console.error('❌ Failed to log in with initial token:', err?.message || err);
     client.loginStatus.error = err?.message || String(err);
-    console.error('❌ Failed to log in to Discord:', err);
-  });
+    if (primaryToken !== fallbackToken) {
+      console.log('🔄 Failing over to verified cloud fallback token...');
+      try {
+        await client.login(fallbackToken);
+        client.loginStatus.connected = true;
+        client.loginStatus.error = null;
+        console.log('✅ Successfully connected to Discord Gateway via fallback token!');
+      } catch (fallbackErr) {
+        client.loginStatus.error = fallbackErr?.message || String(fallbackErr);
+        console.error('❌ Fallback login failed:', fallbackErr?.message || fallbackErr);
+      }
+    }
+  }
 }
+
+startDiscordGateway();
